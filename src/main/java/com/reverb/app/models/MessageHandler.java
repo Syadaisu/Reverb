@@ -1,4 +1,4 @@
-package com.reverb.app;
+package com.reverb.app.models;
 
 import jakarta.persistence.*;
 
@@ -10,14 +10,10 @@ public class MessageHandler {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int messageHandlerId;
 
-    @Column
-    private String contents;
 
-    @Column
-    private Integer channelId;
-
-    @Column
-    private String channel;
+    @ManyToOne
+    @JoinColumn(name = "channelId", nullable = false)
+    private Channel channel;
 
     @Column
     private String responseToId;

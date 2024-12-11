@@ -1,10 +1,7 @@
-package com.reverb.app;
+package com.reverb.app.models;
 
 
 import jakarta.persistence.*;
-import org.aspectj.lang.annotation.RequiredTypes;
-
-import java.util.ArrayList;
 
 @Entity
 @Table(name="Channels")
@@ -14,17 +11,12 @@ public class Channel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int channelId;
 
-    @Column
-    private String name;
+    @Column(nullable=false)
+    private String channelName;
 
-    @Column
-    private Integer serverId;
-
-    @Column
-    private String server;
-
-    @Column
-    private int roleAccessId;
+    @ManyToOne
+    @JoinColumn(name="serverId",nullable=false)
+    private Server server;
 
     @Column
     private String roleAccess;

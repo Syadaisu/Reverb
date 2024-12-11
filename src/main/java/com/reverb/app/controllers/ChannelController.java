@@ -1,5 +1,7 @@
-package com.reverb.app;
+package com.reverb.app.controllers;
 
+import com.reverb.app.models.Channel;
+import com.reverb.app.repositories.ChannelRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

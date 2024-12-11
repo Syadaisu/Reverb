@@ -1,4 +1,4 @@
-package com.reverb.app;
+package com.reverb.app.models;
 
 import jakarta.persistence.*;
 
@@ -10,24 +10,25 @@ public class MessageContent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer messageId;
+    private Integer messageHandlerId;
 
     @Column
     private Integer authorId;
 
-    @Column
-    private Integer author;
+    @ManyToOne
+    @JoinColumn(name = "userId",nullable=false)
+    private User author;
 
-    @Column
+    @Column(nullable=false)
     private String body;
 
-    @Column
+    @Column(nullable=false)
     private Date creationDate;
 
-    @Column
+    @Column(nullable=false)
     private Boolean isDeleted;
 
-    @Column
+    @Column(nullable=false)
     private Integer attachment;
 
 }

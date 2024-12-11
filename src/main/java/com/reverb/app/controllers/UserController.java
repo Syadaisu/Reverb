@@ -1,6 +1,8 @@
-package com.reverb.app;
+package com.reverb.app.controllers;
 
 
+import com.reverb.app.models.User;
+import com.reverb.app.repositories.UserRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
