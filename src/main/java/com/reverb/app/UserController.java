@@ -3,12 +3,10 @@ package com.reverb.app;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/user")
-public class UserControler  {
-    public UserControler(UserRepository userRepository) {this.userRepository=userRepository;}
+public class UserController  {
+    public UserController(UserRepository userRepository) {this.userRepository=userRepository;}
 
     private final UserRepository userRepository;
 

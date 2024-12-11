@@ -3,18 +3,18 @@ package com.reverb.app;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="Messages")
-public class Message {
+@Table(name="MessageHandler")
+public class MessageHandler {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int messageId;
+    private int messageHandlerId;
 
     @Column
     private String contents;
 
     @Column
-    private String channelId;
+    private Integer channelId;
 
     @Column
     private String channel;

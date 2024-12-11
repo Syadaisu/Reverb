@@ -2,6 +2,7 @@ package com.reverb.app;
 
 
 import jakarta.persistence.*;
+import org.aspectj.lang.annotation.RequiredTypes;
 
 import java.util.ArrayList;
 
@@ -17,16 +18,16 @@ public class Channel {
     private String name;
 
     @Column
-    private String serverId;
+    private Integer serverId;
 
     @Column
     private String server;
 
     @Column
-    private String RoleAccessId;
+    private int roleAccessId;
 
     @Column
-    private String RoleAccess;
+    private String roleAccess;
 
     @Column
     private String description;
