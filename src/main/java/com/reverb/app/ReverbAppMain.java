@@ -21,7 +21,7 @@ public class ReverbAppMain {
 	public CommandLineRunner openSwaggerUi() {
 		return args -> {
 			try {
-				String url = "http://localhost:8181/swagger-ui.html";
+				String url = "http://localhost:8181/swagger-ui/index.html#/";
 				if (Desktop.isDesktopSupported()) {
 					Desktop.getDesktop().browse(new URI(url));
 				} else {

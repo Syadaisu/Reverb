@@ -8,11 +8,16 @@ import lombok.Data;
 @Data
 public class LoginRequest {
     @NotBlank
-    @Size(max = 32)
-    @Email
     private String email;
 
     @NotBlank
-    @Size(max = 64)
     private String password;
+
+    public @NotBlank  String getEmail() {
+        return email;
+    }
+
+    public @NotBlank String getPassword() {
+        return password;
+    }
 }

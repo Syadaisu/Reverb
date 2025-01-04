@@ -52,4 +52,47 @@ public class User {
         this.creationDate = date;
     }
 
+    public int getUserId() {
+        return userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+
+    public String getEmail() {
+        return email;
+    }
+
+    public byte[] getAvatar() {
+        return avatar;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setAvatar(byte[] avatar) {
+        this.avatar = avatar;
+    }
+
+
+
 }

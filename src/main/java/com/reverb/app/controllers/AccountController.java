@@ -9,8 +9,10 @@ import com.reverb.app.dto.responses.TokenResponse;
 import com.reverb.app.dto.responses.UserDto;
 import com.reverb.app.models.User;
 import com.reverb.app.services.AccountService;
+import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +30,7 @@ public class AccountController {
 
     @PostMapping("/register")
     public CompletableFuture<ResponseEntity<GenericResponse>> register(@RequestBody RegisterRequest request) {
-        return accountService.register(request.getEmail(), request.getName(), request.getPassword())
+        return accountService.register(request.getEmail(), request.getUserName(), request.getPassword())
                 .thenApply(result -> ResponseEntity.ok(
                         new GenericResponse("Success", "User created successfully")
                 ))
@@ -37,26 +39,40 @@ public class AccountController {
                 ));
     }
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CompletableFuture<ResponseEntity<LoginResponse>> login(@RequestBody LoginRequest request) {
+        System.out.println("loginControllerEnter");
         return accountService.login(request.getEmail(), request.getPassword())
                 .thenApply(result -> {
+                    System.out.println("ServiceCompleted");
                     var user = (User) result.get("user");
-                    return ResponseEntity.ok(
-                            new LoginResponse(
-                                    (String) result.get("accessToken"),
-                                    (String) result.get("refreshToken"),
-                                    new UserDto(
-                                            user.getUserId(),
-                                            user.getUserName(),
-                                            user.getEmail(),
-                                            user.getCreationDate(),
-                                            user.getAvatar()
-                                    )
+                    System.out.println(result);
+
+                    LoginResponse response = new LoginResponse(
+                            (String) result.get("accessToken"),
+                            (String) result.get("refreshToken"),
+                            new UserDto(
+                                    user.getUserId(),
+                                    user.getUserName(),
+                                    user.getEmail(),
+                                    user.getCreationDate(),
+                                    user.getAvatar()
                             )
                     );
+
+                    System.out.println(response); // Print the response
+
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(response);
                 })
-                .exceptionally(ex -> ResponseEntity.badRequest().body(null));
+                .exceptionally(ex -> {
+                    System.out.println("Error");
+                    ex.printStackTrace();  // Optionally log the error
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(new LoginResponse(null, null, null));
+                });
     }
 
     @PostMapping("/refresh")

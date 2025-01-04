@@ -6,11 +6,13 @@ import com.reverb.app.repositories.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.origin.SystemEnvironmentOrigin;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -52,6 +54,7 @@ public class AccountService {
     }
 
     public CompletableFuture<Map<String, Object>> login(String email, String password) {
+        System.out.println("AccountServiceLogin");
         return CompletableFuture.supplyAsync(() -> {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("Invalid email or password"));
@@ -59,15 +62,15 @@ public class AccountService {
             if (!passwordEncoder.matches(password, user.getPassword())) {
                 throw new RuntimeException("Invalid email or password");
             }
-
+            System.out.println("DatabaseCheckDone");
             String accessToken = generateAccessToken(user);
             String refreshToken = generateRefreshToken(String.valueOf(user.getUserId()));
-
+            System.out.println("TokenGenDone");
             Map<String, Object> response = new HashMap<>();
             response.put("user", user);
             response.put("accessToken", accessToken);
             response.put("refreshToken", refreshToken);
-
+            System.out.println("ResponseDone " + response);
             return response;
         });
     }

@@ -12,7 +12,7 @@ public class RegisterRequest {
 
     @NotBlank
     @Size(max = 16)
-    private String name;
+    private String userName;
 
     @NotBlank
     @Size(max = 32)
@@ -26,4 +26,21 @@ public class RegisterRequest {
     @NotBlank
     @Size(max = 64)
     private String confirmPassword;
+
+    public @NotBlank @Size(max = 32) @Email String getEmail() {
+        return email;
+    }
+
+    public @NotBlank @Size(max = 64) String getPassword() {
+        return password;
+    }
+
+    public @NotBlank @Size(max = 64) String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public @NotBlank @Size(max = 16) String getUserName() {
+        return userName;
+    }
+
 }
