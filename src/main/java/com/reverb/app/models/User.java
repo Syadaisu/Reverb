@@ -1,12 +1,20 @@
 package com.reverb.app.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+
 @Entity
 @Table(name="Users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -14,7 +22,7 @@ public class User {
     private int userId;
 
     @Column
-    private String username;
+    private String userName;
 
     @Column
     private String password;
@@ -39,6 +47,9 @@ public class User {
     )
     private List<Server> servers;
 
-    public User(){}
+
+    public void setCreatedAt(Date date) {
+        this.creationDate = date;
+    }
 
 }
