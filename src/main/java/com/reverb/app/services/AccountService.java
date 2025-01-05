@@ -1,21 +1,17 @@
 package com.reverb.app.services;
 
-import com.reverb.app.AppProperties;
+import com.reverb.app.configs.AppProperties;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.origin.SystemEnvironmentOrigin;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 @Service
