@@ -58,7 +58,7 @@ public class ServerController {
         return ResponseEntity.ok(response);
     }
 
-    /*@PostMapping("/addPicture")
+    @PostMapping("/addPicture")
     @Transactional
     public ResponseEntity<?> addPicture(@RequestParam int serverId, @RequestParam AddFileRequest formFile, @AuthenticationPrincipal User user) throws IOException {
         int userId = userService.getUserId(user);
@@ -83,7 +83,7 @@ public class ServerController {
 
         ServerResponse response = new ServerResponse(server.getId(), server.getName(), server.getDescription(), server.getPictureId(), server.getOwnerId());
         return ResponseEntity.ok(response);
-    }*/
+    }
 
     @GetMapping("/getServers")
     public ResponseEntity<?> getServers(@AuthenticationPrincipal User user) {
@@ -146,7 +146,7 @@ public class ServerController {
     @Transactional
     public ResponseEntity<?> deleteServer(@RequestParam int serverId, @AuthenticationPrincipal User user) {
         int userId = userService.getUserId(user);
-        Server server = serverRepository.findByIdAndOwnerId(serverId, userId);
+        Server server = serverRepository.findByServerIdAndOwnerId(serverId, userId);
         if (server == null) {
             return ResponseEntity.status(404).build();
         }

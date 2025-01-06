@@ -13,7 +13,7 @@ import java.net.URI;
 
 @SpringBootApplication(scanBasePackages = {"com.reverb.app"})
 @EnableJpaRepositories(basePackages = "com.reverb.app.repositories")
-@EntityScan(basePackages = "com.reverb.app.models")
+@ComponentScan(basePackages = "com.reverb.app.models")
 public class ReverbAppMain {
 
 	public static void main(String[] args) {

@@ -1,13 +1,11 @@
+// src/main/java/com/reverb/app/models/Server.java
 package com.reverb.app.models;
 
-
 import jakarta.persistence.*;
-
 import java.util.List;
-import java.util.UUID;
 
 @Entity
-@Table(name="Servers")
+@Table(name = "Servers")
 public class Server {
 
     @Id
@@ -30,14 +28,13 @@ public class Server {
     @JoinColumn(name = "userId", insertable = false, updatable = false)
     private User owner;
 
-
     @Column
     private byte[] avatar;
 
-    @ManyToMany(mappedBy = "servers")  // The "servers" field in User entity
+    @ManyToMany(mappedBy = "servers")
     private List<User> members;
 
-    public Server () {}
+    public Server() {}
 
     public Server(String serverName, String description, Boolean isPublic, Integer ownerId) {
         this.serverName = serverName;
