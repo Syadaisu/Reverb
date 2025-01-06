@@ -24,6 +24,10 @@ public class File {
         this.fileType = fileType;
     }
 
+    public File() {
+
+    }
+
     public UUID getFileId() {
         return fileId;
     }

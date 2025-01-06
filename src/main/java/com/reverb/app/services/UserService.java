@@ -1,11 +1,9 @@
 package com.reverb.app.services;
 
-import com.reverb.app.context.ApiDbContext;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.UserRepository;
 import com.reverb.app.dto.requests.UserEditRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

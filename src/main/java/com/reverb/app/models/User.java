@@ -12,9 +12,6 @@ import java.util.List;
 
 @Entity
 @Table(name="Users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
     @Id
@@ -93,6 +90,16 @@ public class User {
         this.avatar = avatar;
     }
 
+    public User() {}
+
+    public User(String userName, String password, String email, byte[] avatar, Date creationDate, Boolean isRemoved) {
+        this.userName = userName;
+        this.password = password;
+        this.email = email;
+        this.avatar = avatar;
+        this.creationDate = creationDate;
+        this.isRemoved = isRemoved;
+    }
 
 
 }

@@ -1,4 +1,4 @@
-package com.reverb.app.config;
+package com.reverb.app.configs;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

@@ -20,12 +20,12 @@ public class JpaConfig {
     public LocalContainerEntityManagerFactoryBean customEntityManagerFactory(DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
+        em.setPersistenceUnitName("default");
         em.setPackagesToScan("com.reverb.app.models");
         em.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
         Properties properties = new Properties();
         properties.setProperty("hibernate.hbm2ddl.auto", "update");
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         em.setJpaProperties(properties);
 
         return em;

@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import java.awt.*;
 import java.net.URI;
 
-@SpringBootApplication // Explicitly define entity package
+@SpringBootApplication(scanBasePackages = {"com.reverb.app"})
+@EnableJpaRepositories(basePackages = "com.reverb.app.repositories")
+@EntityScan(basePackages = "com.reverb.app.models")
 public class ReverbAppMain {
 
 	public static void main(String[] args) {
