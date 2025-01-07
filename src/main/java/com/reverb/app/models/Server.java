@@ -35,4 +35,33 @@ public class Server {
 
     @ManyToMany(mappedBy = "servers")  // The "servers" field in User entity
     private List<User> members;
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setIsPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    public void setAvatar(byte[] avatar) {
+        this.avatar = avatar;
+    }
+
+
+    public int getOwnerId() {
+        return ownerId;
+    }
 }

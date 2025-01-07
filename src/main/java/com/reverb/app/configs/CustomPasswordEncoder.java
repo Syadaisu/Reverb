@@ -1,4 +1,4 @@
-package com.reverb.app.security;
+package com.reverb.app.configs;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.security.MessageDigest;

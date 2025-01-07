@@ -1,4 +1,4 @@
-package com.reverb.app;
+package com.reverb.app.configs;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
