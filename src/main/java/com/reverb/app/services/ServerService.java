@@ -1,16 +1,21 @@
 package com.reverb.app.services;
 
+import com.reverb.app.dto.responses.ServerDto;
 import com.reverb.app.models.Server;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.ServerRepository;
 import com.reverb.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 @Service
 public class ServerService {
@@ -24,7 +29,8 @@ public class ServerService {
         this.userRepository = userRepository;
     }
 
-    // Add a new server
+
+    @Async("securityAwareExecutor")
     public CompletableFuture<Server> addServer(String serverName, String description, int ownerId) {
         return CompletableFuture.supplyAsync(() -> {
             // Check if owner exists
@@ -63,7 +69,28 @@ public class ServerService {
         return CompletableFuture.supplyAsync(() -> serverRepository.findByOwnerId(userId));
     }
 
-    public CompletableFuture<List<Server>> getAllServers() {
-        return CompletableFuture.supplyAsync(() -> serverRepository.findAll());
+    @Async("securityAwareExecutor")
+    public CompletableFuture<List<ServerDto>> getAllServers() {
+        return CompletableFuture.supplyAsync(() -> {
+            try{
+                List<Server> servers = serverRepository.findAll();
+                if (servers.isEmpty()) {
+                    System.out.println("No servers found in the database" + servers);
+                }
+                // Convert Server entities to ServerResponse DTOs
+                return servers.stream()
+                        .map(server -> new ServerDto(
+                                server.getServerId(),
+                                server.getServerName() != null ? server.getServerName() : "Unnamed Server",
+                                server.getDescription() != null ? server.getDescription() : "No description available",
+                                server.getIsPublic() != null ? server.getIsPublic() : false
+                        ))
+                        .collect(Collectors.toList());
+            } catch (Exception e) {
+                System.out.println("Error getting servers: " + e.getMessage());
+                e.printStackTrace();
+                return List.of(); // Return an empty list if something goes wrong
+            }
+        });
     }
 }

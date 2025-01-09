@@ -2,28 +2,20 @@ package com.reverb.app.configs;
 
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.UserRepository;
-import com.reverb.app.services.AccountService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.GrantedAuthority;
-
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,10 +45,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 List<String> roles = claims.get("roles", List.class);
                 List<GrantedAuthority> authorities = roles.stream()
-                        .map(SimpleGrantedAuthority::new)
+                        .map(role -> new SimpleGrantedAuthority(role)) // Ensure roles have "ROLE_" prefix if needed
                         .collect(Collectors.toList());
+
                 System.out.println("Token: " + token);
-                System.out.println("Username from token: " + userId + " Roles:" + authorities);
+                System.out.println("UserID from token: " + userId + " Roles: " + authorities);
 
             } catch (RuntimeException e) {
                 System.out.println("Invalid JWT Token: " + token);
@@ -71,11 +64,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         user, null, user.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                System.out.println("Authentication set in SecurityContext");
             } else {
                 System.out.println("User not found or token invalid");
             }
         }
-        System.out.println("Authentication: " + SecurityContextHolder.getContext().getAuthentication());
+
+        System.out.println("Authentication after filter: " + SecurityContextHolder.getContext().getAuthentication());
         chain.doFilter(request, response);
     }
 }

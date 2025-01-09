@@ -1,6 +1,7 @@
 package com.reverb.app.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -27,13 +28,15 @@ public class Server {
 
     @ManyToOne
     @JoinColumn(name="userId", insertable = false, updatable = false)
+    @JsonIgnore
     private User owner;
 
 
     @Column
     private byte[] avatar;
 
-    @ManyToMany(mappedBy = "servers")  // The "servers" field in User entity
+    @ManyToMany(mappedBy = "servers")
+    @JsonIgnore// The "servers" field in User entity
     private List<User> members;
 
     public void setServerName(String serverName) {
@@ -58,6 +61,22 @@ public class Server {
 
     public void setAvatar(byte[] avatar) {
         this.avatar = avatar;
+    }
+
+    public int getServerId() {
+        return serverId;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Boolean getIsPublic() {
+        return isPublic;
     }
 
 

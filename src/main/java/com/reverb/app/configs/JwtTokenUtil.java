@@ -32,9 +32,10 @@ public class JwtTokenUtil {
         }
     }
 
-    public boolean validateToken(String token, String username) {
+    public boolean validateToken(String token, String userId) {
         Claims claims = parseToken(token);
-        return claims.getSubject().equals(username) && !isTokenExpired(claims);
+        System.out.println("Validation claims: " + claims.getSubject().equals(userId) + " " + !isTokenExpired(claims));
+        return claims.getSubject().equals(userId) && !isTokenExpired(claims);
     }
 
     private boolean isTokenExpired(Claims claims) {
