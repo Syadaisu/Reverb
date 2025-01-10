@@ -2,18 +2,26 @@ package com.reverb.app.dto.requests;
 
 
 public class EditServerRequest {
-
-    private String name;
-
+    private String serverName;
     private String description;
+    private String avatar;
 
-    // Getters and setters
-    public String getName() {
-        return name;
+    public EditServerRequest() {
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public EditServerRequest(String serverName, String description, String avatar) {
+        this.serverName = serverName;
+        this.description = description;
+        this.avatar = avatar;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+
     }
 
     public String getDescription() {
@@ -23,4 +31,13 @@ public class EditServerRequest {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 }
+

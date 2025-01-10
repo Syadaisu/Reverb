@@ -1,17 +1,16 @@
 package com.reverb.app.dto.responses;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-
-public class ServerDto {
+public class AddServerResponse {
     private int serverId;
     private String serverName;
     private String description;
+    private boolean isPublic;
+    private String errorMessage; // Optional field for error messages
 
-    private Boolean isPublic;
+    public AddServerResponse() {
+    }
 
-    public ServerDto(int serverId, String serverName, String description, Boolean isPublic) {
+    public AddServerResponse(int serverId, String serverName, String description, boolean isPublic) {
         this.serverId = serverId;
         this.serverName = serverName;
         this.description = description;
@@ -19,6 +18,7 @@ public class ServerDto {
     }
 
     // Getters and setters
+
     public int getServerId() {
         return serverId;
     }
@@ -43,21 +43,21 @@ public class ServerDto {
         this.description = description;
     }
 
-    public Boolean getIsPublic() {
+    public boolean getIsPublic() {
         return isPublic;
     }
 
-    public void setIsPublic(Boolean isPublic) {
+    public void setIsPublic(boolean isPublic) {
         this.isPublic = isPublic;
     }
 
-    @Override
-    public String toString() {
-        return "ServerDto{" +
-                "serverId=" + serverId +
-                ", serverName='" + serverName + '\'' +
-                ", description='" + description + '\'' +
-                ", isPublic=" + isPublic +
-                '}';
+    public String getErrorMessage() {
+        return errorMessage;
     }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    // toString() can remain as is, if present
 }

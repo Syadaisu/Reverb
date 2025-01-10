@@ -6,9 +6,13 @@ import com.reverb.app.repositories.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
+import java.util.stream.Collectors;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +23,6 @@ public class AccountService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     private final SecretKey jwtSecret;
     private final String jwtIssuer;
     private final String jwtAudience;
@@ -34,18 +37,18 @@ public class AccountService {
         this.jwtAudience = properties.getJwt().getAudience();
     }
 
-    public CompletableFuture<Void> register(String email, String username, String password) {
-        return CompletableFuture.runAsync(() -> {
+    public CompletableFuture<User> register(String email, String userName, String password) {
+        return CompletableFuture.supplyAsync(() -> {
             if (userRepository.existsByEmail(email)) {
                 throw new RuntimeException("User with this email already exists");
             }
-
             User user = new User();
             user.setEmail(email);
-            user.setUserName(username);
+            user.setUserName(userName);
             user.setPassword(passwordEncoder.encode(password));
             user.setCreatedAt(new Date());
-            userRepository.save(user);
+            user.setAuthorities(Collections.singletonList("ROLE_USER"));
+            return userRepository.save(user);
         });
     }
 
@@ -67,23 +70,27 @@ public class AccountService {
             response.put("accessToken", accessToken);
             response.put("refreshToken", refreshToken);
             System.out.println("ResponseDone " + response);
+
             return response;
         });
     }
 
     public String generateAccessToken(User user) {
-
-
+        System.out.println("SecretKey" + jwtSecret);
         return Jwts.builder()
                 .setSubject(String.valueOf(user.getUserId()))
                 .claim("username", user.getUserName())
                 .claim("email", user.getEmail())
+                .claim("roles", user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList()))
                 .setIssuer(jwtIssuer)
                 .setAudience(jwtAudience)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
                 .signWith(jwtSecret, SignatureAlgorithm.HS256)
                 .compact();
+
     }
 
     public String generateRefreshToken(String userId) {
@@ -105,7 +112,7 @@ public class AccountService {
                 claims = Jwts.parser()
                         .setSigningKey(jwtSecret)
                         .build()
-                        .parseClaimsJws(token)
+                        .parseSignedClaims(token)
                         .getBody();
             } catch (JwtException e) {
                 throw new RuntimeException("Invalid refresh token");
@@ -127,5 +134,29 @@ public class AccountService {
             tokens.put("refreshToken", newRefreshToken);
             return tokens;
         });
+    }
+
+    public boolean validateToken(String token, User user) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtSecret)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getBody();
+            String userName = claims.getSubject();
+            System.out.println("Validaton: " + userName + "Claims: " + claims);
+            return (userName.equals(user.getUserName()) && !isTokenExpired(claims));
+        } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("Invalid token: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isTokenExpired(Claims claims) {
+        return claims.getExpiration().before(new Date());
+    }
+
+    public SecretKey getJwtSecret() {
+        return jwtSecret;
     }
 }

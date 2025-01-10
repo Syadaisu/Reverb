@@ -9,17 +9,8 @@ import java.util.List;
 
 public interface ServerRepository extends CrudRepository<Server, Integer> {
     Server findByServerName(String serverName);
-    boolean existsByServerName(String serverName);
-    Server findByServerIdAndOwnerId(int serverId, int ownerId);
-    boolean existsByUserIdAndServerId(int userId, int serverId);
-    boolean existsByOwnerIdAndServerId(int ownerId, int serverId);
-    List<Server> findAllByUserId(int userId);
-    List<User> findUsersByServerId(int serverId);
-    void addUserToServer(int serverId, int userId);
-    Server findByServerId(int serverId);
-    void removeUserFromServer(int serverId, int userId);
-    void deleteMessagesByServerId(int serverId);
-    void deleteChannelsByServerId(int serverId);
-    void deleteUserServersByServerId(int serverId);
-    void updateServer(int serverId, String serverName, String description);
+
+    List<Server> findByOwnerId(int userId);
+
+    List<Server> findAll();
 }

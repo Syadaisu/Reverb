@@ -1,21 +1,25 @@
+// User.java
 package com.reverb.app.models;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import jakarta.persistence.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name="Users")
-public class User {
+
+public class User implements UserDetails {
+
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int userId;
 
     @Column
@@ -38,12 +42,20 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-            name = "user_server",  // The join table name
-            joinColumns = @JoinColumn(name = "userId"),  // Foreign key to the User table
-            inverseJoinColumns = @JoinColumn(name = "serverId")  // Foreign key to the Server table
+            name = "user_server",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "serverId")
     )
     private List<Server> servers;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "userId"))
+    @Column(name = "authority")
+    private List<String> authorities;
+
+    public User() {
+        this.authorities = Collections.singletonList("ROLE_USER");
+    }
 
     public void setCreatedAt(Date date) {
         this.creationDate = date;
@@ -56,7 +68,6 @@ public class User {
     public String getUserName() {
         return userName;
     }
-
 
     public String getEmail() {
         return email;
@@ -72,6 +83,11 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return "";
     }
 
     public void setEmail(String email) {
@@ -90,16 +106,36 @@ public class User {
         this.avatar = avatar;
     }
 
-    public User() {}
 
-    public User(String userName, String password, String email, byte[] avatar, Date creationDate, Boolean isRemoved) {
-        this.userName = userName;
-        this.password = password;
-        this.email = email;
-        this.avatar = avatar;
-        this.creationDate = creationDate;
-        this.isRemoved = isRemoved;
+    public void setAuthorities(List<String> authorities) {
+        this.authorities = authorities;
+
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

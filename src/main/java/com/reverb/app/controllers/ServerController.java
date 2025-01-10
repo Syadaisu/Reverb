@@ -1,22 +1,25 @@
 package com.reverb.app.controllers;
 
-import com.reverb.app.dto.requests.AddFileRequest;
-import com.reverb.app.dto.requests.CreateServerRequest;
+
+import com.reverb.app.dto.requests.AddServerRequest;
 import com.reverb.app.dto.requests.EditServerRequest;
+import com.reverb.app.dto.responses.AddServerResponse;
 import com.reverb.app.dto.responses.GenericResponse;
 import com.reverb.app.dto.responses.ServerDto;
-import com.reverb.app.dto.responses.UserDto;
 import com.reverb.app.models.Server;
 import com.reverb.app.models.User;
-import com.reverb.app.repositories.ServerRepository;
-import com.reverb.app.services.ChatHubService;
-import com.reverb.app.services.FileService;
-import com.reverb.app.services.UserService;
+import com.reverb.app.repositories.UserRepository;
+import com.reverb.app.services.ServerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -24,184 +27,221 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.security.Principal;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/server")
 public class ServerController {
 
-    private final ServerRepository serverRepository;
-    private final UserService userService;
-    private final FileService fileService;
-    private final ChatHubService hubService;
+    private final ServerService serverService;
+    private final UserRepository userRepository;
+    private final SystemMetricsAutoConfiguration systemMetricsAutoConfiguration;
 
     @Autowired
-    public ServerController(ServerRepository serverRepository, UserService userService, FileService fileService, ChatHubService hubService) {
-        this.serverRepository = serverRepository;
-        this.userService = userService;
-        this.fileService = fileService;
-        this.hubService = hubService;
+    public ServerController(ServerService serverService, UserRepository userRepository, SystemMetricsAutoConfiguration systemMetricsAutoConfiguration) {
+        this.serverService = serverService;
+        this.userRepository = userRepository;
+        this.systemMetricsAutoConfiguration = systemMetricsAutoConfiguration;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody CreateServerRequest dto, @AuthenticationPrincipal User user) {
-        if (serverRepository.existsByServerName(dto.getServerName())) {
-            return ResponseEntity.status(409).build();
-        }
-
-        int userId = userService.getUserId(user);
-
-        Server server = new Server(dto.getServerName(), dto.getDescription(), dto.isPublic(), userId);
-        serverRepository.save(server);
-
-        serverRepository.addUserToServer(server.getServerId(), userId);
-
-        ServerDto response = new ServerDto(server.getServerId(), server.getServerName(), server.getDescription(), server.getAvatar(), server.getOwnerId());
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/addPicture")
-    @Transactional
-    public ResponseEntity<?> addPicture(@RequestParam int serverId, @RequestParam AddFileRequest formFile, @AuthenticationPrincipal User user) throws IOException {
-        int userId = userService.getUserId(user);
-        Server server = serverRepository.findByIdAndOwnerId(serverId, userId);
-        if (server == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        byte[] blob = formFile.getFile();
-
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping(value = "/add", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AddServerResponse> addServer(
+            @RequestBody AddServerRequest request
+    ) {
         try {
-            if (server.getAvatar() != null) {
-                fileService.delete(server.getAvatar());
+            // 1. Grab the authenticated User object from SecurityContext
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            User authenticatedUser = (User) authentication.getPrincipal();
+            int ownerId = authenticatedUser.getUserId();  // This is the actual DB userId
+
+            System.out.println("Owner ID from principal: " + ownerId);
+            System.out.println("Username from entity: " + authenticatedUser.getUserName());
+
+            // 2. If needed, ensure the user actually exists in DB
+            //    (optional if you trust the filter did that check)
+            User user = userRepository.findByUserId(ownerId);
+            if (user == null) {
+                AddServerResponse errorResp = new AddServerResponse();
+                errorResp.setErrorMessage("No user found for ID: " + ownerId);
+                return ResponseEntity.badRequest().body(errorResp);
             }
 
-            UUID uuid = fileService.writeBytes(formFile.getFile());
-            serverRepository.updatePictureId(serverId, uuid);
-            serverRepository.save(server);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            // 3. Create the server (blocking call if your service is async)
+            Server savedServer = serverService.addServer(
+                    request.getServerName(),
+                    request.getServerDescription(),
+                    ownerId
+            ).join();
 
-        ServerResponse response = new ServerResponse(server.getId(), server.getName(), server.getDescription(), server.getPictureId(), server.getOwnerId());
-        return ResponseEntity.ok(response);
+            // 4. Build and return the success response
+            AddServerResponse successResp = new AddServerResponse(
+                    savedServer.getServerId(),
+                    savedServer.getServerName(),
+                    savedServer.getDescription(),
+                    savedServer.getIsPublic() != null ? savedServer.getIsPublic() : false
+            );
+
+            return ResponseEntity.ok(successResp);
+
+        } catch (Exception ex) {
+            // 5. Error handling
+            AddServerResponse errorResp = new AddServerResponse();
+            errorResp.setErrorMessage(ex.getMessage());
+            return ResponseEntity.badRequest().body(errorResp);
+        }
     }
 
-    @GetMapping("/getServers")
-    public ResponseEntity<?> getServers(@AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
 
-        List<Server> servers = serverRepository.findAllByUserId(userId);
+    /*@PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping(value = "/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CompletableFuture<ResponseEntity<List<ServerDto>>> getAllServers() {
+        System.out.println("getAllServers");
+        return serverService.getAllServers()
+                .thenApply(servers -> {
+                    // Log and handle servers
+                    System.out.println("Processing servers: " + servers);
+                    System.out.println("SecurityContext inside thenApply: " + SecurityContextHolder.getContext().getAuthentication());
+                    List<ServerDto> response = servers.stream()
+                            .map(server -> new ServerDto(
+                                    server.getServerId(),
+                                    server.getServerName(),
+                                    server.getDescription(),
+                                    server.getIsPublic()
+                            ))
+                            .collect(Collectors.toList());
+                    System.out.println("Mapped response: " + response);
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(response);
+                })
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        System.out.println("Completion exception: " + throwable.getMessage());
+                        throwable.printStackTrace();
+                    } else {
+                        System.out.println("Response completed successfully.");
+                    }
+                })
+                .exceptionally(ex -> {
+                    System.out.println("Error in async flow: " + ex.getMessage());
+                    ex.printStackTrace();
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(List.of());
+                });
 
+    }*/
+    // Synchronous approach
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/getAll")
+    public ResponseEntity<List<ServerDto>> getAllServers() {
+        System.out.println("getAllServers");
+        // Wait (join) for the async service call to complete
+        List<ServerDto> servers = serverService.getAllServers().join();
+
+        // Convert or map your results
         List<ServerDto> response = servers.stream()
-                .map(server -> new ServerDto(server.getServerId(), server.getServerName(), server.getDescription(), server.getAvatar(), server.getOwnerId()))
+                .map(server -> new ServerDto(
+                        server.getServerId(),
+                        server.getServerName(),
+                        server.getDescription(),
+                        server.getIsPublic()
+                ))
                 .collect(Collectors.toList());
-
+        System.out.println("Mapped response: " + response);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/getServer")
-    public ResponseEntity<?> getServer(@RequestParam int id, @AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
-        Server server = serverRepository.findByServerId(id);
-        if (server == null) {
-            return ResponseEntity.status(404).build();
-        }
-        if (!serverRepository.existsByUserIdAndServerId(userId, id)) {
-            return ResponseEntity.status(401).build();
-        }
-
-        ServerDto response = new ServerDto(server.getServerId(), server.getServerName(), server.getDescription(), server.getAvatar(), server.getOwnerId());
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/joinServer")
-    public ResponseEntity<?> joinServer(@RequestParam String name, @AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
-        Server server = serverRepository.findByServerName(name);
-        if (server == null || !server.isPublic()) {
-            return ResponseEntity.status(404).build();
-        }
-
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @DeleteMapping("/delete/{serverId}")
+    public ResponseEntity<GenericResponse> deleteServer(@PathVariable int serverId) {
         try {
-            serverRepository.addUserToServer(server.getServerId(), userId);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new GenericResponse("Error", "User is already on the server"));
-        }
+            // 1. Get the authenticated user from SecurityContext
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            User authenticatedUser = (User) authentication.getPrincipal();
+            int ownerId = authenticatedUser.getUserId();
 
-        ServerDto response = new ServerDto(server.getServerId(), server.getServerName(), server.getDescription(), server.getAvatar(), server.getOwnerId());
-        return ResponseEntity.ok(response);
+            // 2. Invoke service method to delete the server
+            serverService.deleteServer(serverId, ownerId).join();
+
+            // 3. Return success response
+            GenericResponse response = new GenericResponse("Success","Server deleted successfully.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception ex) {
+            // Return an error response
+            GenericResponse errorResp = new GenericResponse("Error","Failed to delete server: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResp);
+        }
     }
 
-    @DeleteMapping("/leaveServer")
-    public ResponseEntity<?> leaveServer(@RequestParam int serverId, @AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
-        if (!serverRepository.existsByUserIdAndServerId(userId, serverId)) {
-            return ResponseEntity.status(404).build();
-        }
 
-        serverRepository.removeUserFromServer(userId, serverId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/deleteServer")
-    @Transactional
-    public ResponseEntity<?> deleteServer(@RequestParam int serverId, @AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
-        Server server = serverRepository.findByServerIdAndOwnerId(serverId, userId);
-        if (server == null) {
-            return ResponseEntity.status(404).build();
-        }
-
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/getByUser/{userId}")
+    public ResponseEntity<List<ServerDto>> getServersByUserId(@PathVariable int userId) {
         try {
-            serverRepository.deleteMessagesByServerId(serverId);
-            serverRepository.deleteChannelsByServerId(serverId);
-            serverRepository.deleteUserServersByServerId(serverId);
-            serverRepository.deleteById(serverId);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
+            // 1. Await the async call
+            List<ServerDto> serverDtos = serverService.getUserServers(userId).join();
 
-        return ResponseEntity.ok().build();
+            // 2. Return the results
+            return ResponseEntity.ok(serverDtos);
+
+        } catch (Exception ex) {
+            // 3. Handle exceptions
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(List.of());
+        }
     }
 
-    @PostMapping("/kickUser")
-    public ResponseEntity<?> kickUser(@RequestParam int serverId, @RequestParam int userId, @AuthenticationPrincipal User user) {
-        int ownerId = userService.getUserId(user);
-        if (!serverRepository.existsByOwnerIdAndServerId(ownerId, serverId)) {
-            return ResponseEntity.status(401).build();
-        }
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PutMapping(value = "/edit/{serverId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ServerDto> editServer(
+            @PathVariable int serverId,
+            @RequestBody EditServerRequest request
+    ) {
+        try {
+            // 1. Get the authenticated user from SecurityContext
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            User authenticatedUser = (User) authentication.getPrincipal();
+            int ownerId = authenticatedUser.getUserId();
 
-        if (!serverRepository.existsByUserIdAndServerId(userId, serverId)) {
-            return ResponseEntity.status(404).build();
-        }
+            // 2. Call the async service to edit the server
+            ServerDto updatedServerDto = serverService.editServer(
+                    serverId,
+                    ownerId,
+                    request.getServerName(),
+                    request.getDescription(),
+                    request.getAvatar()
+            ).join(); // This .join() will wait for the async call to finish.
 
-        serverRepository.removeUserFromServer(userId, serverId);
-        return ResponseEntity.ok().build();
+            // 3. Return the updated server info
+            return ResponseEntity.ok(updatedServerDto);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            // You can return an error message, or a response object with the error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
-    @GetMapping("/getUsers")
-    public ResponseEntity<?> getUsers(@RequestParam int id, @AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/{serverId}")
+    public ResponseEntity<ServerDto> getServerById(@PathVariable int serverId) {
+        try {
+            // Call the async service method and wait for completion
+            ServerDto serverDto = serverService.getServerById(serverId).join();
 
-        if (!serverRepository.existsByUserIdAndServerId(userId, id)) {
-            return ResponseEntity.status(401).build();
+            // Return the server info with status 200 (OK)
+            return ResponseEntity.ok(serverDto);
+
+        } catch (Exception ex) {
+            // Handle errors (e.g., server not found)
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        List<UserDto> users = serverRepository.findUsersByServerId(id).stream()
-                .map(usernew -> new UserDto(user.getUserId(), user.getUserName(), user.getEmail(), user.getCreationDate(), user.getAvatar()))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(users);
     }
 
-    @PatchMapping("/edit")
-    public ResponseEntity<?> edit(@RequestParam int serverId, @RequestBody EditServerRequest dto, @AuthenticationPrincipal User user) {
-        int userId = userService.getUserId(user);
-        if (!serverRepository.existsByOwnerIdAndServerId(userId, serverId)) {
-            return ResponseEntity.status(401).build();
-        }
 
-        serverRepository.updateServer(serverId, dto.getName(), dto.getDescription());
-        hubService.editServer(serverId, dto.getName(), dto.getDescription());
-        return ResponseEntity.ok().build();
-    }
 }
