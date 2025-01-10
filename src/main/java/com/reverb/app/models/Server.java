@@ -1,13 +1,15 @@
+// src/main/java/com/reverb/app/models/Server.java
 package com.reverb.app.models;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name="Servers")
+@Table(name = "Servers")
 public class Server {
 
     @Id
@@ -20,17 +22,18 @@ public class Server {
     @Column
     private String description;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Boolean isPublic;
 
-    @Column(name="userId",nullable=false)
+    @Column(name = "userId", nullable = false)
     private Integer ownerId;
 
     @ManyToOne
+
     @JoinColumn(name="userId", insertable = false, updatable = false)
     @JsonIgnore
-    private User owner;
 
+    private User owner;
 
     @Column
     private byte[] avatar;
@@ -63,9 +66,11 @@ public class Server {
         this.avatar = avatar;
     }
 
+
     public int getServerId() {
         return serverId;
     }
+
 
     public String getServerName() {
         return serverName;
@@ -84,3 +89,4 @@ public class Server {
         return ownerId;
     }
 }
+

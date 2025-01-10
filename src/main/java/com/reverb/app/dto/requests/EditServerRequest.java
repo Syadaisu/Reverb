@@ -1,5 +1,6 @@
 package com.reverb.app.dto.requests;
 
+
 public class EditServerRequest {
     private String serverName;
     private String description;
@@ -20,6 +21,7 @@ public class EditServerRequest {
 
     public void setServerName(String serverName) {
         this.serverName = serverName;
+
     }
 
     public String getDescription() {
@@ -38,3 +40,4 @@ public class EditServerRequest {
         this.avatar = avatar;
     }
 }
+

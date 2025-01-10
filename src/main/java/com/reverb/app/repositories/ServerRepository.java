@@ -1,6 +1,8 @@
+
 package com.reverb.app.repositories;
 
 import com.reverb.app.models.Server;
+import com.reverb.app.models.User;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
