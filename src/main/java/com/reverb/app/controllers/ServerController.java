@@ -1,6 +1,7 @@
 package com.reverb.app.controllers;
 
 import com.reverb.app.dto.requests.AddServerRequest;
+import com.reverb.app.dto.requests.EditServerRequest;
 import com.reverb.app.dto.responses.AddServerResponse;
 import com.reverb.app.dto.responses.GenericResponse;
 import com.reverb.app.dto.responses.ServerDto;
@@ -147,5 +148,92 @@ public class ServerController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @DeleteMapping("/delete/{serverId}")
+    public ResponseEntity<GenericResponse> deleteServer(@PathVariable int serverId) {
+        try {
+            // 1. Get the authenticated user from SecurityContext
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            User authenticatedUser = (User) authentication.getPrincipal();
+            int ownerId = authenticatedUser.getUserId();
+
+            // 2. Invoke service method to delete the server
+            serverService.deleteServer(serverId, ownerId).join();
+
+            // 3. Return success response
+            GenericResponse response = new GenericResponse("Success","Server deleted successfully.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception ex) {
+            // Return an error response
+            GenericResponse errorResp = new GenericResponse("Error","Failed to delete server: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResp);
+        }
+    }
+
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/getByUser/{userId}")
+    public ResponseEntity<List<ServerDto>> getServersByUserId(@PathVariable int userId) {
+        try {
+            // 1. Await the async call
+            List<ServerDto> serverDtos = serverService.getUserServers(userId).join();
+
+            // 2. Return the results
+            return ResponseEntity.ok(serverDtos);
+
+        } catch (Exception ex) {
+            // 3. Handle exceptions
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(List.of());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PutMapping(value = "/edit/{serverId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ServerDto> editServer(
+            @PathVariable int serverId,
+            @RequestBody EditServerRequest request
+    ) {
+        try {
+            // 1. Get the authenticated user from SecurityContext
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            User authenticatedUser = (User) authentication.getPrincipal();
+            int ownerId = authenticatedUser.getUserId();
+
+            // 2. Call the async service to edit the server
+            ServerDto updatedServerDto = serverService.editServer(
+                    serverId,
+                    ownerId,
+                    request.getServerName(),
+                    request.getDescription(),
+                    request.getAvatar()
+            ).join(); // This .join() will wait for the async call to finish.
+
+            // 3. Return the updated server info
+            return ResponseEntity.ok(updatedServerDto);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            // You can return an error message, or a response object with the error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/{serverId}")
+    public ResponseEntity<ServerDto> getServerById(@PathVariable int serverId) {
+        try {
+            // Call the async service method and wait for completion
+            ServerDto serverDto = serverService.getServerById(serverId).join();
+
+            // Return the server info with status 200 (OK)
+            return ResponseEntity.ok(serverDto);
+
+        } catch (Exception ex) {
+            // Handle errors (e.g., server not found)
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 
 }

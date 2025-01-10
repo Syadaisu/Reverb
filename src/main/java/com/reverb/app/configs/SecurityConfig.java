@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 "/account/login",
                                 "/error"
                         ).permitAll()
-                        .requestMatchers("/server/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/server/**","/channel/**","/message/**").hasAuthority("ROLE_USER")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

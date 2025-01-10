@@ -1,40 +1,25 @@
-package com.reverb.app.models;
+package com.reverb.app.dto.responses;
 
-
-import jakarta.persistence.*;
-
-@Entity
-@Table(name="Channels")
-public class Channel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+public class ChannelDto {
     private int channelId;
-
-    @Column(nullable=false)
     private String channelName;
-
-    @ManyToOne
-    @JoinColumn(name="serverId",nullable=false)
-    private Server server;
-
-    @Column
+    private int serverId;    // so the client knows which server this channel belongs to
     private String roleAccess;
-
-    @Column
     private String description;
 
-
-    public Channel() {
+    // Constructors
+    public ChannelDto() {
     }
 
-    public Channel(String channelName, Server server, String roleAccess, String description) {
+    public ChannelDto(int channelId, String channelName, int serverId, String roleAccess, String description) {
+        this.channelId = channelId;
         this.channelName = channelName;
-        this.server = server;
+        this.serverId = serverId;
         this.roleAccess = roleAccess;
         this.description = description;
     }
 
+    // Getters and Setters
     public int getChannelId() {
         return channelId;
     }
@@ -51,12 +36,12 @@ public class Channel {
         this.channelName = channelName;
     }
 
-    public Server getServer() {
-        return server;
+    public int getServerId() {
+        return serverId;
     }
 
-    public void setServer(Server server) {
-        this.server = server;
+    public void setServerId(int serverId) {
+        this.serverId = serverId;
     }
 
     public String getRoleAccess() {

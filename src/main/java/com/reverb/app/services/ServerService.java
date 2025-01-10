@@ -50,6 +50,7 @@ public class ServerService {
     }
 
     // Delete a server
+    @Async("securityAwareExecutor")
     public CompletableFuture<Void> deleteServer(int serverId, int ownerId) {
         return CompletableFuture.runAsync(() -> {
             Server server = serverRepository.findById(serverId)
@@ -65,8 +66,34 @@ public class ServerService {
     }
 
     // Get all servers for a user
-    public CompletableFuture<List<Server>> getUserServers(int userId) {
-        return CompletableFuture.supplyAsync(() -> serverRepository.findByOwnerId(userId));
+    @Async("securityAwareExecutor")
+    public CompletableFuture<List<ServerDto>> getUserServers(int userId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // 1. Fetch servers for the given user
+                List<Server> servers = serverRepository.findByOwnerId(userId);
+
+                // 2. Log if none found
+                if (servers.isEmpty()) {
+                    System.out.println("No servers found for user " + userId);
+                }
+
+                // 3. Convert each Server entity to a ServerDto, providing defaults if null
+                return servers.stream()
+                        .map(server -> new ServerDto(
+                                server.getServerId(),
+                                server.getServerName() != null ? server.getServerName() : "Unnamed Server",
+                                server.getDescription() != null ? server.getDescription() : "No description available",
+                                server.getIsPublic() != null ? server.getIsPublic() : false
+                        ))
+                        .collect(Collectors.toList());
+
+            } catch (Exception e) {
+                System.out.println("Error getting servers for user " + userId + ": " + e.getMessage());
+                e.printStackTrace();
+                return List.of(); // Return an empty list if something goes wrong
+            }
+        });
     }
 
     @Async("securityAwareExecutor")
@@ -91,6 +118,65 @@ public class ServerService {
                 e.printStackTrace();
                 return List.of(); // Return an empty list if something goes wrong
             }
+        });
+    }
+
+    @Async("securityAwareExecutor")
+    public CompletableFuture<ServerDto> editServer(
+            int serverId,
+            int ownerId,
+            String newName,
+            String newDescription,
+            String newAvatar
+    ) {
+        return CompletableFuture.supplyAsync(() -> {
+            // 1. Fetch server from DB
+            Server server = serverRepository.findById(serverId)
+                    .orElseThrow(() -> new RuntimeException("Server not found"));
+
+            // 2. Ensure the user owns the server
+            if (server.getOwnerId() != ownerId) {
+                throw new RuntimeException("You do not have permission to edit this server");
+            }
+
+            // 3. Update fields
+            if (newName != null) {
+                server.setServerName(newName);
+            }
+            if (newDescription != null) {
+                server.setDescription(newDescription);
+            }
+            /*if (newAvatar != null) {
+                server.setAvatar(newAvatar);
+            }*/
+
+            // 4. Save changes
+            Server updatedServer = serverRepository.save(server);
+
+            // 5. Convert updated entity to a ServerDto
+            return new ServerDto(
+                    updatedServer.getServerId(),
+                    updatedServer.getServerName(),
+                    updatedServer.getDescription(),
+                    updatedServer.getIsPublic() != null ? updatedServer.getIsPublic() : false
+            );
+        });
+    }
+
+    @Async("securityAwareExecutor")
+    public CompletableFuture<ServerDto> getServerById(int serverId) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Fetch the server from the database
+            Server server = serverRepository.findById(serverId)
+                    .orElseThrow(() -> new RuntimeException("Server not found with ID: " + serverId));
+
+            // Convert to a ServerDto (handle null fields safely)
+            return new ServerDto(
+                    server.getServerId(),
+                    server.getServerName() != null ? server.getServerName() : "Unnamed Server",
+                    server.getDescription() != null ? server.getDescription() : "No description available",
+                    server.getIsPublic() != null ? server.getIsPublic() : false
+            );
         });
     }
 }
