@@ -56,6 +56,7 @@ public class AccountService {
     public CompletableFuture<Map<String, Object>> login(String email, String password) {
         System.out.println("AccountServiceLogin");
         return CompletableFuture.supplyAsync(() -> {
+            System.out.println("DatabaseCheck " + email + " " + password);
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("Invalid email or password"));
 
