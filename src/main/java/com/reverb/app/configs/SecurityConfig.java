@@ -30,6 +30,7 @@ public class SecurityConfig {
                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        System.out.println("Custom SecurityConfig Loaded");
     }
 
     @Bean
@@ -50,6 +51,8 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/account/register",
                                 "/account/login",
+                                "/ws/info",
+                                "/ws/**",
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/server/**","/channel/**","/message/**").hasAuthority("ROLE_USER")
@@ -68,8 +71,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         // Configure the CORS rules
+        System.out.println("Custom Cors Accessed");
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5000"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5000"));
         // If you want to allow multiple origins, add them here
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Origin"));

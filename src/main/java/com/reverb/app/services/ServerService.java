@@ -49,6 +49,21 @@ public class ServerService {
         });
     }
 
+    public Server addServerSync(String name, String description, int ownerId) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new UsernameNotFoundException("Owner not found"));
+
+        Server server = new Server();
+        server.setServerName(name);
+        server.setDescription(description);
+        server.setIsPublic(true);
+        server.setOwnerId(ownerId);
+        server.setAvatar(null);
+        server.setOwner(owner);// Set the owner ID
+        // Additional setup if necessary
+        return serverRepository.save(server);
+    }
+
     // Delete a server
     @Async("securityAwareExecutor")
     public CompletableFuture<Void> deleteServer(int serverId, int ownerId) {

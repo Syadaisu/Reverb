@@ -2,6 +2,7 @@ package com.reverb.app.controllers;
 
 import com.reverb.app.dto.requests.*;
 import com.reverb.app.dto.responses.*;
+import com.reverb.app.models.Server;
 import com.reverb.app.services.ServerService;
 import com.reverb.app.services.ChannelService;
 import com.reverb.app.services.MessageService;
@@ -21,6 +22,26 @@ public class WebSocketController {
 
     @Autowired
     private MessageService messageService;
+
+
+    @MessageMapping("/createServer")
+    @SendTo("/topic/server.created")
+    public AddServerResponse createServer(AddServerRequest payload) {
+        // 1) Save the new server in the DB or wherever
+        Server server = serverService.addServerSync(
+                payload.getServerName(),
+                payload.getServerDescription(),
+                payload.getOwnerId()
+        );
+
+        // 2) Return an event object that will be sent to ALL subscribers of "/topic/server.created"
+        return new AddServerResponse(
+                server.getServerId(),
+                server.getServerName(),
+                server.getDescription(),
+                server.getIsPublic()// optional: if you want to broadcast the owner id
+        );
+    }
 
     // Example: Join a server
     /*@MessageMapping("/joinServer")

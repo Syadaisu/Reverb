@@ -22,4 +22,19 @@ public class UserDto {
         this.avatar = avatar;
     }
 
+    public int getUserId() {
+        return userId;
+    }
+    public String getUserName() {
+        return userName;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public Date getCreationDate() {
+        return creationDate;
+    }
+    public byte[] getAvatar() {
+        return avatar;
+    }
 }
