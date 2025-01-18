@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface ChannelRepository extends CrudRepository<Channel, Integer> {
     Channel findByChannelName(String channelName);
-
+    Channel findByChannelId(int channelId);
     List<Channel> findByServerServerId(int serverId);
 }

@@ -49,4 +49,6 @@ public class AddChannelRequest {
     public void setDescription(String description) {
         this.description = description;
     }
+
+
 }

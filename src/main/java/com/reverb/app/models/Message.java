@@ -64,6 +64,10 @@ public class Message {
         this.author = author;
     }
 
+    public int getAuthorId() {
+        return this.author.getUserId();
+    }
+
     public String getBody() {
         return body;
     }

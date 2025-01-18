@@ -5,11 +5,13 @@ import com.reverb.app.dto.requests.EditMessageRequest;
 import com.reverb.app.dto.responses.MessageDto;
 import com.reverb.app.models.Channel;
 import com.reverb.app.models.Message;
+import com.reverb.app.models.Server;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.ChannelRepository;
 import com.reverb.app.repositories.MessageRepository;
 import com.reverb.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +53,7 @@ public class MessageService {
         message.setBody(request.getBody());
         message.setCreationDate(new Date());
         message.setIsDeleted(false);
-        message.setAttachment(request.getAttachment() != null ? request.getAttachment() : 0);
+        message.setAttachment(null);
         message.setResponseToId(request.getResponseToId());
         message.setResponseTo(request.getResponseTo());
 
@@ -60,6 +62,26 @@ public class MessageService {
 
         // 5. Return as DTO
         return toMessageDto(message);
+    }
+
+    public Message createMessageSync(int channelId, int authorId, String body, String responsetoId, String responseto) {
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new UsernameNotFoundException("Channel not found"));
+
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Message message = new Message();
+        message.setChannel(channel);
+        message.setBody(body);
+        message.setCreationDate(new Date());
+        message.setIsDeleted(false);
+        message.setAttachment(0);
+        message.setAuthor(author);
+        message.setResponseToId(responsetoId);
+        message.setResponseTo(responseto);
+        // Additional setup if necessary
+        return messageRepository.save(message);
     }
 
     public List<MessageDto> getMessagesByChannel(int channelId) {

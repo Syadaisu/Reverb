@@ -2,6 +2,9 @@ package com.reverb.app.controllers;
 
 import com.reverb.app.dto.requests.*;
 import com.reverb.app.dto.responses.*;
+
+import com.reverb.app.models.Channel;
+import com.reverb.app.models.Message;
 import com.reverb.app.models.Server;
 import com.reverb.app.services.ServerService;
 import com.reverb.app.services.ChannelService;
@@ -27,6 +30,7 @@ public class WebSocketController {
     @MessageMapping("/createServer")
     @SendTo("/topic/server.created")
     public AddServerResponse createServer(AddServerRequest payload) {
+        System.out.println("WebSocketController.createServer: " + payload + " " + payload.getServerName() + " " + payload.getServerDescription() + " " + payload.getOwnerId());
         // 1) Save the new server in the DB or wherever
         Server server = serverService.addServerSync(
                 payload.getServerName(),
@@ -43,6 +47,56 @@ public class WebSocketController {
         );
     }
 
+    @MessageMapping("/createChannel")
+    @SendTo("/topic/server.{serverId}.channel.added")
+    public AddChannelResponse addChannel(AddChannelRequest payload) {
+        // 1) Save the new channel in the DB or wherever
+        Channel channel = channelService.createChannelSync(
+                payload.getChannelName(),
+                payload.getDescription(),
+                payload.getServerId()
+        );
+
+        // 2) Return an event object that will be sent to ALL subscribers of "/topic/server.{serverId}.channel.added"
+        return new AddChannelResponse(
+                channel.getChannelId(),
+                channel.getChannelName(),
+                channel.getDescription(),
+                channel.getRoleAccess()
+        );
+    }
+
+
+    @MessageMapping("/addMessage")
+    @SendTo("/topic/server.{serverId}.channel.{channelId}.message.added")
+    public AddMessageResponse addMessage(AddMessageRequest payload) {
+        System.out.println("WebSocketController.addMessage: " + payload + " " + payload.getChannelId() + " " + payload.getAuthorId() + " " + payload.getBody() + " " + payload.getResponseToId() + " " + payload.getResponseTo());
+        // 1) Persist the message
+        Message saved = messageService.createMessageSync(
+                payload.getChannelId(),
+                payload.getAuthorId(),
+                payload.getBody(),
+                payload.getResponseToId(),
+                payload.getResponseTo()
+        );
+
+        // 2) Build response DTO
+        AddMessageResponse response = new AddMessageResponse();
+        response.setMessageId(saved.getMessageId());
+        response.setChannelId(saved.getChannel().getChannelId());
+        response.setAuthorId(saved.getAuthor().getUserId());
+        response.setBody(saved.getBody());
+        response.setCreationDate(saved.getCreationDate());
+        response.setDeleted(false);
+        response.setAttachment(saved.getAttachment());
+        response.setResponseToId(saved.getResponseToId());
+        response.setResponseTo(saved.getResponseTo());
+
+        return response;
+        // => broadcast to /topic/server.{serverId}.channel.{channelId}.message.added
+    }
+}
+
     // Example: Join a server
     /*@MessageMapping("/joinServer")
     @SendTo("/topic/server.{serverId}.joined")
@@ -51,13 +105,6 @@ public class WebSocketController {
         return new ServerJoinedEvent(payload.getServerId(), payload.getUserId());
     }
 
-    // Example: Create a channel
-    @MessageMapping("/createChannel")
-    @SendTo("/topic/server.{serverId}.channel.created")
-    public ChannelCreatedEvent createChannel(CreateChannelPayload payload) {
-        Channel channel = channelService.createChannel(payload.getServerId(), payload.getName(), payload.getDescription());
-        return new ChannelCreatedEvent(channel);
-    }
 
     // Example: Edit a channel
     @MessageMapping("/editChannel")
@@ -84,4 +131,3 @@ public class WebSocketController {
     }
 
     // Similarly, add more @MessageMapping methods as needed*/
-}
