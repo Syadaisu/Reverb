@@ -1,6 +1,7 @@
 package com.reverb.app.services;
 
 import com.reverb.app.configs.AppProperties;
+import com.reverb.app.models.Attachment;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.UserRepository;
 import io.jsonwebtoken.*;
@@ -67,10 +68,16 @@ public class AccountService {
             String accessToken = generateAccessToken(user);
             String refreshToken = generateRefreshToken(String.valueOf(user.getUserId()));
             System.out.println("TokenGenDone");
+            Attachment avatar = user.getAvatar() != null ? user.getAvatar() : null;
+            String avatarUuid = null;
+            if (avatar != null) {
+                avatarUuid = avatar.getAttachmentUuid();
+            }
             Map<String, Object> response = new HashMap<>();
             response.put("user", user);
             response.put("accessToken", accessToken);
             response.put("refreshToken", refreshToken);
+            response.put("avatarUuid", avatarUuid); ;
             System.out.println("ResponseDone " + response);
 
             return response;

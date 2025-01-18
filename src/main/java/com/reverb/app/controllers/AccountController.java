@@ -7,6 +7,7 @@ import com.reverb.app.dto.responses.GenericResponse;
 import com.reverb.app.dto.responses.LoginResponse;
 import com.reverb.app.dto.responses.TokenResponse;
 import com.reverb.app.dto.responses.UserDto;
+import com.reverb.app.models.Attachment;
 import com.reverb.app.models.User;
 import com.reverb.app.services.AccountService;
 import org.springframework.http.MediaType;
@@ -47,7 +48,7 @@ public class AccountController {
                     System.out.println("ServiceCompleted");
                     var user = (User) result.get("user");
                     System.out.println(result);
-
+                    String avatarUuid = (String) result.get("avatarUuid");
                     LoginResponse response = new LoginResponse(
                             (String) result.get("accessToken"),
                             (String) result.get("refreshToken"),
@@ -56,7 +57,9 @@ public class AccountController {
                                     user.getUserName(),
                                     user.getEmail(),
                                     user.getCreationDate(),
-                                    user.getAvatar()
+                                    avatarUuid
+
+
                             )
                     );
 

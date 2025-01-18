@@ -18,6 +18,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private int userId;
 
     @Column
@@ -29,8 +30,10 @@ public class User implements UserDetails {
     @Column
     private String email;
 
-    @Column
-    private byte[] avatar;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "avatar_uuid", referencedColumnName = "attachment_uuid")
+    private Attachment avatar;
 
     @Column
     private Date creationDate;
@@ -41,13 +44,14 @@ public class User implements UserDetails {
     @ManyToMany
     @JoinTable(
             name = "user_server",
-            joinColumns = @JoinColumn(name = "userId"),
-            inverseJoinColumns = @JoinColumn(name = "serverId")
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "server_id")
     )
     private List<Server> servers;
 
+
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "userId"))
+    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "authority")
     private List<String> authorities;
 
@@ -71,7 +75,7 @@ public class User implements UserDetails {
         return email;
     }
 
-    public byte[] getAvatar() {
+    public Attachment getAvatar() {
         return avatar;
     }
 
@@ -100,7 +104,7 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public void setAvatar(byte[] avatar) {
+    public void setAvatar(Attachment avatar) {
         this.avatar = avatar;
     }
 
@@ -134,4 +138,16 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
+    public void setServers(List<Server> servers) {
+        this.servers = servers;
+    }
+
+    public List<Server> getServers() {
+        return servers;
+    }
+
+
+
 }

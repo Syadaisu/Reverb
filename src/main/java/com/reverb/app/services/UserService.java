@@ -5,7 +5,9 @@ import com.reverb.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -28,4 +30,25 @@ public class UserService {
 
         );
     }
+
+    /*public void uploadAvatar(int userId, MultipartFile file) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id=" + userId));
+
+        // Convert the multipart file to bytes
+        byte[] avatarBytes = file.getBytes();
+
+        // Set user avatar
+        user.setAvatar(avatarBytes);
+
+        // Save
+        userRepository.save(user);
+    }
+
+    public byte[] getUserAvatar(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id=" + userId));
+
+        return user.getAvatar(); // Could be null if no avatar
+    }*/
 }

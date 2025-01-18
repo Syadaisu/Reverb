@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -85,8 +86,9 @@ public class ServerService {
     public CompletableFuture<List<ServerDto>> getUserServers(int userId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+
                 // 1. Fetch servers for the given user
-                List<Server> servers = serverRepository.findByOwnerId(userId);
+                List<Server> servers = serverRepository.findAllByMemberUserId(userId);
 
                 // 2. Log if none found
                 if (servers.isEmpty()) {
@@ -109,6 +111,31 @@ public class ServerService {
                 return List.of(); // Return an empty list if something goes wrong
             }
         });
+    }
+
+    @Transactional
+    public List<ServerDto> getUserServersFromUserSide(int userId) {
+        // 1) Load the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id=" + userId));
+
+        // 2) Access the servers from 'user'
+        System.out.println("User: "+ user.getServers() + " " + user.getUserName());
+        List<Server> servers = user.getServers();  // This is the ManyToMany list
+
+        // 3) Convert to Dtos
+        return servers.stream()
+                .map(this::toDto)   // or a custom mapping
+                .collect(Collectors.toList());
+    }
+
+    private ServerDto toDto(Server server) {
+        return new ServerDto(
+                server.getServerId(),
+                server.getServerName() != null ? server.getServerName() : "Unnamed Server",
+                server.getDescription() != null ? server.getDescription() : "No description",
+                server.getIsPublic() != null ? server.getIsPublic() : false
+        );
     }
 
     @Async("securityAwareExecutor")
@@ -193,5 +220,34 @@ public class ServerService {
                     server.getIsPublic() != null ? server.getIsPublic() : false
             );
         });
+    }
+
+    @Transactional
+    public void joinServer(String serverName, int userId) {
+        // 1) find the server by name
+        Server server = serverRepository.findByServerName(serverName)
+                .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
+
+        // 2) find the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No user found with id: " + userId));
+
+        // 3) Add user to server's members if not already
+        if (!server.getMembers().contains(user)) {
+            server.getMembers().add(user);
+        }
+
+        // 4) Also add the server to user’s servers if not already
+        if (!user.getServers().contains(server)) {
+            user.getServers().add(server);
+        }
+
+        // 5) Save the "owning" side or both to ensure the link is persisted
+        // Typically, the side with @JoinTable is the "owning" side - that’s the user in this example
+        // So saving user might be enough. But to be safe, you can save both:
+
+        userRepository.save(user);   // Persist the new link
+        serverRepository.save(server);
+
     }
 }

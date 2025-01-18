@@ -12,6 +12,7 @@ import com.reverb.app.services.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -26,6 +27,8 @@ public class WebSocketController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/createServer")
     @SendTo("/topic/server.created")
@@ -68,9 +71,14 @@ public class WebSocketController {
 
 
     @MessageMapping("/addMessage")
-    @SendTo("/topic/server.{serverId}.channel.{channelId}.message.added")
-    public AddMessageResponse addMessage(AddMessageRequest payload) {
-        System.out.println("WebSocketController.addMessage: " + payload + " " + payload.getChannelId() + " " + payload.getAuthorId() + " " + payload.getBody() + " " + payload.getResponseToId() + " " + payload.getResponseTo());
+    public void addMessage(AddMessageRequest payload) {
+        System.out.println("WebSocketController.addMessage: " + payload
+                + " channelId=" + payload.getChannelId()
+                + " authorId=" + payload.getAuthorId()
+                + " body=" + payload.getBody()
+                + " responseToId=" + payload.getResponseToId()
+                + " responseTo=" + payload.getResponseTo());
+
         // 1) Persist the message
         Message saved = messageService.createMessageSync(
                 payload.getChannelId(),
@@ -92,8 +100,12 @@ public class WebSocketController {
         response.setResponseToId(saved.getResponseToId());
         response.setResponseTo(saved.getResponseTo());
 
-        return response;
-        // => broadcast to /topic/server.{serverId}.channel.{channelId}.message.added
+        // 3) Broadcast to a dynamic path based on channelId
+        // matching what your client is subscribing to, e.g. "/topic/channel.{channelId}.message.added"
+        String destination = "/topic/channel." + payload.getChannelId() + ".message.added";
+        System.out.println("Broadcasting to destination=" + destination);
+
+        messagingTemplate.convertAndSend(destination, response);
     }
 }
 

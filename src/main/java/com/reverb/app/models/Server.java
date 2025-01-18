@@ -12,9 +12,10 @@ public class Server {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "server_id")
     private int serverId;
 
-    @Column
+    @Column(unique = true, nullable = false)
     private String serverName;
 
     @Column
@@ -23,11 +24,11 @@ public class Server {
     @Column(nullable=false)
     private Boolean isPublic;
 
-    @Column(name="userId",nullable=false)
+    @Column(name="user_id",nullable=false)
     private Integer ownerId;
 
     @ManyToOne
-    @JoinColumn(name="userId", insertable = false, updatable = false)
+    @JoinColumn(name="user_id", insertable = false, updatable = false)
     @JsonIgnore
     private User owner;
 
@@ -83,4 +84,7 @@ public class Server {
     public int getOwnerId() {
         return ownerId;
     }
+
+    public List<User> getMembers() { return members; }
+    public void setMembers(List<User> members) { this.members = members; }
 }
