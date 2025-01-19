@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 "/account/login",
                                 "/ws/info",
                                 "/ws/**",
+                                "/attachment/view/**",
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/server/**","/channel/**","/message/**").hasAuthority("ROLE_USER")
