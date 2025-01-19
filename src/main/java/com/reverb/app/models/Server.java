@@ -1,4 +1,6 @@
+// src/main/java/com/reverb/app/models/Server.java
 package com.reverb.app.models;
+
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -6,10 +8,12 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+
+import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name="Servers")
+@Table(name = "Servers")
 public class Server {
 
     @Id
@@ -23,7 +27,7 @@ public class Server {
     @Column
     private String description;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Boolean isPublic;
 
     @Column(name="user_id",nullable=false)
@@ -31,9 +35,10 @@ public class Server {
 
     @ManyToOne
     @JoinColumn(name="user_id", insertable = false, updatable = false)
-    @JsonIgnore
-    private User owner;
 
+    @JsonIgnore
+
+    private User owner;
 
     @Column
     private byte[] avatar;
@@ -67,9 +72,11 @@ public class Server {
         this.avatar = avatar;
     }
 
+
     public int getServerId() {
         return serverId;
     }
+
 
     public String getServerName() {
         return serverName;
@@ -91,3 +98,4 @@ public class Server {
     public List<User> getMembers() { return members; }
     public void setMembers(List<User> members) { this.members = members; }
 }
+

@@ -1,5 +1,3 @@
-// src/main/java/com/reverb/app/services/UserService.java
-
 package com.reverb.app.services;
 
 import com.reverb.app.dto.requests.EditUserRequest;

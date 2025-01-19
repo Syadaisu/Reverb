@@ -16,7 +16,9 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name="Users")
+
 public class User implements UserDetails {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -111,8 +113,10 @@ public class User implements UserDetails {
         this.avatar = avatar;
     }
 
+
     public void setAuthorities(List<String> authorities) {
         this.authorities = authorities;
+
     }
 
     @Override

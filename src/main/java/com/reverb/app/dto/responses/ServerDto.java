@@ -3,10 +3,12 @@ package com.reverb.app.dto.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class ServerDto {
     private int serverId;
     private String serverName;
     private String description;
+
     private Boolean isPublic;
 
     public ServerDto(int serverId, String serverName, String description, Boolean isPublic) {
