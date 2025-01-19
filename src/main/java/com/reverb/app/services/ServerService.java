@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -50,19 +51,32 @@ public class ServerService {
         });
     }
 
+    @Transactional
     public Server addServerSync(String name, String description, int ownerId) {
+        // 1) Fetch the owner
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UsernameNotFoundException("Owner not found"));
 
+        // 2) Create the server object
         Server server = new Server();
         server.setServerName(name);
         server.setDescription(description);
         server.setIsPublic(true);
         server.setOwnerId(ownerId);
         server.setAvatar(null);
-        server.setOwner(owner);// Set the owner ID
-        // Additional setup if necessary
-        return serverRepository.save(server);
+        server.setOwner(owner);
+
+        if (server.getMembers() == null) {
+            server.setMembers(new ArrayList<>());
+        }
+        // 3) Save the server
+        server = serverRepository.save(server);
+
+        // 4) Automatically join the owner to the server by calling joinServer
+        joinServer(server.getServerName(), ownerId);
+
+        // 5) Return the fully created server
+        return server;
     }
 
     // Delete a server
