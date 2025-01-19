@@ -1,108 +1,94 @@
 package com.reverb.app.services;
 
+import com.reverb.app.dto.requests.EditUserRequest;
+import com.reverb.app.models.Attachment;
 import com.reverb.app.models.User;
+import com.reverb.app.repositories.AttachmentRepository;
 import com.reverb.app.repositories.UserRepository;
-import com.reverb.app.dto.requests.UserEditRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
-public class UserService implements UserDetailsService {
-
-    private final DatabaseService apiDbContext;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+public class UserService {
 
     @Autowired
-    public UserService(DatabaseService apiDbContext, UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.apiDbContext = apiDbContext;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private UserRepository userRepository;
 
-    private Optional<User> getUserQuery(int userId, int otherUserId) {
-        return userRepository.findById(otherUserId);
-    }
+    @Autowired
+    private AttachmentRepository attachmentRepository;
 
-    public Optional<User> findUserIfReachable(int userId, int otherUserId) {
-        return getUserQuery(userId, otherUserId);
-    }
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    public Optional<User> findUserIfNotBlocked(int userId, int otherUserId) {
-        return getUserQuery(userId, otherUserId);
-    }
+    @Transactional
+    public void editUserData(int userId, EditUserRequest editUserRequest) throws Exception {
+        // 1) Identify the currently authenticated user
 
-    public User getUser(User user) {
-        return getUserById(getUserId(user));
-    }
 
-    public boolean editUser(User user, UserEditRequest request, UUID pictureUUID) {
-        boolean res = editUser(user, request.getEmail(), request.getUserName(), request.getNewPassword(), request.getPassword(), pictureUUID);
-        if (res) {
-            apiDbContext.saveChanges();
+        // 2) Fetch that user from the DB
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new Exception("Authenticated user not found"));
+
+        System.out.println("Current username: " + user.getUserName());
+
+        System.out.println("Editing user: " + user.getUserName() + " on " + editUserRequest.getUserName());
+        // 3) Update username if provided
+        if (editUserRequest.getUserName() != null && !editUserRequest.getUserName().isBlank()) {
+            // Check if new username is available
+            System.out.println("New username: " + editUserRequest.getUserName());
+            user.setUserName(editUserRequest.getUserName());
         }
-        return res;
-    }
 
-    private boolean editUser(User user, String email, String userName, String newPassword, String password, UUID pictureUUID) {
-        User existingUser = getUser(user);
-        if (email != null) {
-            existingUser.setEmail(email);
-        }
-        if (userName != null) {
-            existingUser.setUserName(userName);
-        }
-        if (newPassword != null && password != null) {
-            if (passwordEncoder.matches(password, existingUser.getPassword())) {
-                existingUser.setPassword(passwordEncoder.encode(newPassword));
-            } else {
-                return false;
+        // 4) If user wants to change password, oldPassword must be correct
+        if (editUserRequest.getNewPassword() != null && !editUserRequest.getNewPassword().isBlank()) {
+            // Ensure user provided the old password
+            String oldPassword = editUserRequest.getOldPassword();
+            if (oldPassword == null || oldPassword.isBlank()) {
+                throw new Exception("Old password is required to change your password.");
             }
+
+            // Check if old password matches
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                throw new Exception("Old password is incorrect.");
+            }
+
+            // Now set the new password
+            user.setPassword(passwordEncoder.encode(editUserRequest.getNewPassword()));
         }
-        if (pictureUUID != null) {
-            // existingUser.setAvatar(pictureUUID);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateUserAvatar(int userId, MultipartFile avatar) throws Exception {
+        // 1) Identify current user
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new Exception("Authenticated user not found"));
+
+        // 2) If avatar is empty => maybe remove or throw error
+        if (avatar == null || avatar.isEmpty()) {
+            throw new Exception("No avatar file provided.");
         }
 
-        userRepository.save(existingUser);
-        return true;
-    }
-
-    public User getUserById(int userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    public User getUserByUsername(String userName) {
-        return userRepository.findByUserName(userName).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    public boolean userExists(User user) {
-        int userId = user.getUserId();
-        return userRepository.existsById(userId);
-    }
-
-    public void ensureUserExists(User user) {
-        if (!userExists(user)) {
-            throw new UsernameNotFoundException("User not found");
+        // 3) If user has an existing attachment or not
+        Attachment attachment;
+        if (user.getAvatar() != null) {
+            attachment = user.getAvatar();
+        } else {
+            attachment = new Attachment();
         }
+        attachment.setAttachmentData(avatar.getBytes());
+        attachment.setContentType(avatar.getContentType());
+        attachmentRepository.save(attachment); // ensure stored
+
+        user.setAvatar(attachment);
+        userRepository.save(user);
     }
 
-    public int getUserId(User user) {
-        return user.getUserId();
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        return (UserDetails) userRepository.findByUserName(userName).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
 }

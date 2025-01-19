@@ -1,6 +1,9 @@
 package com.reverb.app.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.util.Date;
 
 @Entity
@@ -13,6 +16,7 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "channelId", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Channel channel;
 
     @ManyToOne
@@ -62,6 +66,10 @@ public class Message {
 
     public void setAuthor(User author) {
         this.author = author;
+    }
+
+    public int getAuthorId() {
+        return this.author.getUserId();
     }
 
     public String getBody() {

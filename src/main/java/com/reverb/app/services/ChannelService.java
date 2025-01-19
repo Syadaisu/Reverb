@@ -70,6 +70,19 @@ public class ChannelService {
         });
     }
 
+    public Channel createChannelSync(String name, String description, int serverId) {
+        Server server = serverRepository.findById(serverId)
+                .orElseThrow(() -> new UsernameNotFoundException("Server not found"));
+
+        Channel channel = new Channel();
+        channel.setChannelName(name);
+        channel.setDescription(description);
+        channel.setRoleAccess("everyone");
+        channel.setServer(server);
+        // Additional setup if necessary
+        return channelRepository.save(channel);
+    }
+
     /**
      * Get channels by serverId (anyone might be allowed to see them, or you can add an isPublic check).
      */
@@ -130,9 +143,9 @@ public class ChannelService {
             if (request.getChannelName() != null) {
                 channel.setChannelName(request.getChannelName());
             }
-            if (request.getRoleAccess() != null) {
+            /*if (request.getRoleAccess() != null) {
                 channel.setRoleAccess(request.getRoleAccess());
-            }
+            }*/
             if (request.getDescription() != null) {
                 channel.setDescription(request.getDescription());
             }
@@ -143,7 +156,7 @@ public class ChannelService {
                     channel.getChannelId(),
                     channel.getChannelName(),
                     channel.getServer().getServerId(),
-                    channel.getRoleAccess(),
+                    null,
                     channel.getDescription()
             );
         });

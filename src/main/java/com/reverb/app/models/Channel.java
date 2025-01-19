@@ -2,6 +2,8 @@ package com.reverb.app.models;
 
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name="Channels")
@@ -16,6 +18,7 @@ public class Channel {
 
     @ManyToOne
     @JoinColumn(name="serverId",nullable=false)
+    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
     private Server server;
 
     @Column

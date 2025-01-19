@@ -63,7 +63,9 @@ public class ServerController {
 
             // 2. If needed, ensure the user actually exists in DB
             //    (optional if you trust the filter did that check)
-            User user = userRepository.findByUserId(ownerId);
+            User user = userRepository.findByUserId(ownerId)
+                    .orElseThrow(() -> new Exception("Authenticated user not found"));
+
             if (user == null) {
                 AddServerResponse errorResp = new AddServerResponse();
                 errorResp.setErrorMessage("No user found for ID: " + ownerId);
@@ -180,8 +182,8 @@ public class ServerController {
 
 
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    @GetMapping("/getByUser/{userId}")
-    public ResponseEntity<List<ServerDto>> getServersByUserId(@PathVariable int userId) {
+    @GetMapping("/getByUsers/{userId}")
+    public ResponseEntity<List<ServerDto>> getServersByUsersId(@PathVariable int userId) {
         try {
             // 1. Await the async call
             List<ServerDto> serverDtos = serverService.getUserServers(userId).join();
@@ -212,8 +214,8 @@ public class ServerController {
                     serverId,
                     ownerId,
                     request.getServerName(),
-                    request.getDescription(),
-                    request.getAvatar()
+                    request.getDescription()
+                    //request.getAvatar()
             ).join(); // This .join() will wait for the async call to finish.
 
             // 3. Return the updated server info
@@ -240,6 +242,33 @@ public class ServerController {
             // Handle errors (e.g., server not found)
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping("/join")
+    public ResponseEntity<String> joinServer(
+            @RequestParam String serverName,
+            @RequestParam int userId
+    ) {
+        try {
+            serverService.joinServer(serverName, userId);
+            User user = userRepository.findByUserId(userId).orElseThrow(() -> new Exception("Authenticated user not found"));
+            System.out.println("User's servers:" + user.getServers());
+            return ResponseEntity.ok("User " + userId + " joined server: " + serverName);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error joining server: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/getByUser/{userId}")
+    public ResponseEntity<List<ServerDto>> getServersByUserId(@PathVariable int userId) {
+        try {
+            List<ServerDto> dtos = serverService.getUserServersFromUserSide(userId);
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(List.of());
         }
     }
 

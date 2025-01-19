@@ -4,6 +4,10 @@ package com.reverb.app.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 
 import jakarta.persistence.*;
 import java.util.List;
@@ -14,9 +18,10 @@ public class Server {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "server_id")
     private int serverId;
 
-    @Column
+    @Column(unique = true, nullable = false)
     private String serverName;
 
     @Column
@@ -25,12 +30,12 @@ public class Server {
     @Column(nullable = false)
     private Boolean isPublic;
 
-    @Column(name = "userId", nullable = false)
+    @Column(name="user_id",nullable=false)
     private Integer ownerId;
 
     @ManyToOne
+    @JoinColumn(name="user_id", insertable = false, updatable = false)
 
-    @JoinColumn(name="userId", insertable = false, updatable = false)
     @JsonIgnore
 
     private User owner;
@@ -40,6 +45,7 @@ public class Server {
 
     @ManyToMany(mappedBy = "servers")
     @JsonIgnore// The "servers" field in User entity
+    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
     private List<User> members;
 
     public void setServerName(String serverName) {
@@ -88,5 +94,8 @@ public class Server {
     public int getOwnerId() {
         return ownerId;
     }
+
+    public List<User> getMembers() { return members; }
+    public void setMembers(List<User> members) { this.members = members; }
 }
 
