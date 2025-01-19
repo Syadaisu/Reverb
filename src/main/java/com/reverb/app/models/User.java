@@ -1,6 +1,8 @@
 // User.java
 package com.reverb.app.models;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,6 +49,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "server_id")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
     private List<Server> servers;
 
 

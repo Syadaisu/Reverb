@@ -143,9 +143,9 @@ public class ChannelService {
             if (request.getChannelName() != null) {
                 channel.setChannelName(request.getChannelName());
             }
-            if (request.getRoleAccess() != null) {
+            /*if (request.getRoleAccess() != null) {
                 channel.setRoleAccess(request.getRoleAccess());
-            }
+            }*/
             if (request.getDescription() != null) {
                 channel.setDescription(request.getDescription());
             }
@@ -156,7 +156,7 @@ public class ChannelService {
                     channel.getChannelId(),
                     channel.getChannelName(),
                     channel.getServer().getServerId(),
-                    channel.getRoleAccess(),
+                    null,
                     channel.getDescription()
             );
         });

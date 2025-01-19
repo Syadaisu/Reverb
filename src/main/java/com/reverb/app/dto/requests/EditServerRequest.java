@@ -3,15 +3,15 @@ package com.reverb.app.dto.requests;
 public class EditServerRequest {
     private String serverName;
     private String description;
-    private String avatar;
+    //private String avatar;
 
     public EditServerRequest() {
     }
 
-    public EditServerRequest(String serverName, String description, String avatar) {
+    public EditServerRequest(String serverName, String description ) {
         this.serverName = serverName;
         this.description = description;
-        this.avatar = avatar;
+        //this.avatar = avatar;
     }
 
     public String getServerName() {
@@ -30,11 +30,11 @@ public class EditServerRequest {
         this.description = description;
     }
 
-    public String getAvatar() {
+    /*public String getAvatar() {
         return avatar;
     }
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
-    }
+    }*/
 }

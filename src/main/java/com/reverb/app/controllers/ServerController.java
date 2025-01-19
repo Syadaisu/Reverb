@@ -207,8 +207,8 @@ public class ServerController {
                     serverId,
                     ownerId,
                     request.getServerName(),
-                    request.getDescription(),
-                    request.getAvatar()
+                    request.getDescription()
+                    //request.getAvatar()
             ).join(); // This .join() will wait for the async call to finish.
 
             // 3. Return the updated server info

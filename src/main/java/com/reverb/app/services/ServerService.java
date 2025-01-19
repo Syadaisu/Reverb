@@ -3,6 +3,7 @@ package com.reverb.app.services;
 import com.reverb.app.dto.responses.ServerDto;
 import com.reverb.app.models.Server;
 import com.reverb.app.models.User;
+import com.reverb.app.repositories.ChannelRepository;
 import com.reverb.app.repositories.ServerRepository;
 import com.reverb.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,13 @@ public class ServerService {
 
     private final ServerRepository serverRepository;
     private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
     @Autowired
-    public ServerService(ServerRepository serverRepository, UserRepository userRepository) {
+    public ServerService(ServerRepository serverRepository, UserRepository userRepository, ChannelRepository channelRepository) {
         this.serverRepository = serverRepository;
         this.userRepository = userRepository;
+        this.channelRepository = channelRepository;
     }
 
 
@@ -90,7 +93,7 @@ public class ServerService {
             if (server.getOwnerId() != ownerId) {
                 throw new RuntimeException("You do not have permission to delete this server");
             }
-
+            channelRepository.deleteAllByServerId(serverId);
             serverRepository.deleteById(serverId);
         });
     }
@@ -182,8 +185,8 @@ public class ServerService {
             int serverId,
             int ownerId,
             String newName,
-            String newDescription,
-            String newAvatar
+            String newDescription
+            //String newAvatar
     ) {
         return CompletableFuture.supplyAsync(() -> {
             // 1. Fetch server from DB

@@ -3,6 +3,8 @@ package com.reverb.app.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class Server {
 
     @ManyToMany(mappedBy = "servers")
     @JsonIgnore// The "servers" field in User entity
+    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
     private List<User> members;
 
     public void setServerName(String serverName) {
