@@ -1,13 +1,14 @@
 package com.reverb.app.dto.requests;
 
 public class EditUserRequest {
-
+    // User ID
     private String userName;      // Optional new username
     private String oldPassword;   // Current password (for verification)
     private String newPassword;   // Optional new password
 
     public EditUserRequest() {
     }
+
 
     // Getters and Setters
     public String getUserName() {

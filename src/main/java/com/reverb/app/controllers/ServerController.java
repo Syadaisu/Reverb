@@ -56,7 +56,9 @@ public class ServerController {
 
             // 2. If needed, ensure the user actually exists in DB
             //    (optional if you trust the filter did that check)
-            User user = userRepository.findByUserId(ownerId);
+            User user = userRepository.findByUserId(ownerId)
+                    .orElseThrow(() -> new Exception("Authenticated user not found"));
+
             if (user == null) {
                 AddServerResponse errorResp = new AddServerResponse();
                 errorResp.setErrorMessage("No user found for ID: " + ownerId);
@@ -244,7 +246,7 @@ public class ServerController {
     ) {
         try {
             serverService.joinServer(serverName, userId);
-            User user = userRepository.findByUserId(userId);
+            User user = userRepository.findByUserId(userId).orElseThrow(() -> new Exception("Authenticated user not found"));
             System.out.println("User's servers:" + user.getServers());
             return ResponseEntity.ok("User " + userId + " joined server: " + serverName);
         } catch (Exception e) {
