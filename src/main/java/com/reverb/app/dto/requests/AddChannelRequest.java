@@ -10,7 +10,7 @@ public class AddChannelRequest {
     public AddChannelRequest() {
     }
 
-    public AddChannelRequest(String channelName, int serverId, String roleAccess, String description) {
+    public AddChannelRequest(String channelName, int serverId, String description, String roleAccess) {
         this.channelName = channelName;
         this.serverId = serverId;
         this.roleAccess = roleAccess;

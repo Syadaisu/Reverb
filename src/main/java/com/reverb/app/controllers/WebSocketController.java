@@ -51,8 +51,9 @@ public class WebSocketController {
     }
 
     @MessageMapping("/createChannel")
-    @SendTo("/topic/server.{serverId}.channel.added")
+    @SendTo("/topic/server.channel.added")
     public AddChannelResponse addChannel(AddChannelRequest payload) {
+        System.out.println("WebSocketController.addChannel: "+ payload + "serverId: " + payload.getServerId() + payload.getChannelName());
         // 1) Save the new channel in the DB or wherever
         Channel channel = channelService.createChannelSync(
                 payload.getChannelName(),
