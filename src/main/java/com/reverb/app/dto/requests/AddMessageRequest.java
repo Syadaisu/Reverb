@@ -64,4 +64,5 @@ public class AddMessageRequest {
     public void setAttachment(int attachment) {
         this.attachment = attachment;
     }
+
 }

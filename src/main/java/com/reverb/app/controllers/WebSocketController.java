@@ -109,38 +109,3 @@ public class WebSocketController {
         messagingTemplate.convertAndSend(destination, response);
     }
 }
-
-    // Example: Join a server
-    /*@MessageMapping("/joinServer")
-    @SendTo("/topic/server.{serverId}.joined")
-    public ServerJoinedEvent joinServer(JoinServerPayload payload) {
-        serverService.joinServer(payload.getServerId(), payload.getUserId());
-        return new ServerJoinedEvent(payload.getServerId(), payload.getUserId());
-    }
-
-
-    // Example: Edit a channel
-    @MessageMapping("/editChannel")
-    @SendTo("/topic/server.{serverId}.channel.edited")
-    public ChannelEditedEvent editChannel(EditChannelPayload payload) {
-        Channel channel = channelService.editChannel(payload.getChannelId(), payload.getName(), payload.getDescription());
-        return new ChannelEditedEvent(channel);
-    }
-
-    // Example: Delete a channel
-    @MessageMapping("/deleteChannel")
-    @SendTo("/topic/server.{serverId}.channel.deleted")
-    public ChannelDeletedEvent deleteChannel(DeleteChannelPayload payload) {
-        channelService.deleteChannel(payload.getChannelId());
-        return new ChannelDeletedEvent(payload.getChannelId());
-    }
-
-    // Example: Send a message
-    @MessageMapping("/sendMessage")
-    @SendTo("/topic/server.{serverId}.channel.{channelId}.messages")
-    public MessageSentEvent sendMessage(SendMessagePayload payload) {
-        Message message = messageService.sendMessage(payload.getServerId(), payload.getChannelId(), payload.getUserId(), payload.getContent());
-        return new MessageSentEvent(message);
-    }
-
-    // Similarly, add more @MessageMapping methods as needed*/
