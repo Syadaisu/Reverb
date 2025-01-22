@@ -143,7 +143,8 @@ public class ServerController {
                         server.getServerId(),
                         server.getServerName(),
                         server.getDescription(),
-                        server.getIsPublic()
+                        server.getIsPublic(),
+                        server.getOwnerId()
                 ))
                 .collect(Collectors.toList());
         System.out.println("Mapped response: " + response);

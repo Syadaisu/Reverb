@@ -92,7 +92,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return "";
+        return this.userName;
     }
 
     public void setEmail(String email) {
@@ -109,6 +109,10 @@ public class User implements UserDetails {
 
     public void setAvatar(Attachment avatar) {
         this.avatar = avatar;
+    }
+
+    public String getAvatarUuid() {
+        return (avatar != null) ? avatar.getAttachmentUuid() : null;
     }
 
     public void setAuthorities(List<String> authorities) {

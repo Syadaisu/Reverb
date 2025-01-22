@@ -118,7 +118,8 @@ public class ServerService {
                                 server.getServerId(),
                                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                                 server.getDescription() != null ? server.getDescription() : "No description available",
-                                server.getIsPublic() != null ? server.getIsPublic() : false
+                                server.getIsPublic() != null ? server.getIsPublic() : false,
+                                server.getOwnerId()
                         ))
                         .collect(Collectors.toList());
 
@@ -151,7 +152,8 @@ public class ServerService {
                 server.getServerId(),
                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                 server.getDescription() != null ? server.getDescription() : "No description",
-                server.getIsPublic() != null ? server.getIsPublic() : false
+                server.getIsPublic() != null ? server.getIsPublic() : false,
+                server.getOwnerId()
         );
     }
 
@@ -169,7 +171,8 @@ public class ServerService {
                                 server.getServerId(),
                                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                                 server.getDescription() != null ? server.getDescription() : "No description available",
-                                server.getIsPublic() != null ? server.getIsPublic() : false
+                                server.getIsPublic() != null ? server.getIsPublic() : false,
+                                server.getOwnerId()
                         ))
                         .collect(Collectors.toList());
             } catch (Exception e) {
@@ -217,7 +220,8 @@ public class ServerService {
                     updatedServer.getServerId(),
                     updatedServer.getServerName(),
                     updatedServer.getDescription(),
-                    updatedServer.getIsPublic() != null ? updatedServer.getIsPublic() : false
+                    updatedServer.getIsPublic() != null ? updatedServer.getIsPublic() : false,
+                    updatedServer.getOwnerId()
             );
         });
     }
@@ -234,7 +238,8 @@ public class ServerService {
                     server.getServerId(),
                     server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                     server.getDescription() != null ? server.getDescription() : "No description available",
-                    server.getIsPublic() != null ? server.getIsPublic() : false
+                    server.getIsPublic() != null ? server.getIsPublic() : false,
+                    server.getOwnerId()
             );
         });
     }

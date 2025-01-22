@@ -70,4 +70,19 @@ public class UserController {
             return ResponseEntity.badRequest().body(new EditUserResponse("Error updating avatar: " + e.getMessage()));
         }
     }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping(value = "/getUser/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDto> getUser(
+            @PathVariable int userId
+    ) {
+        try {
+            UserDto userDto = userService.getUserById(userId);
+            System.out.println("User found: " + userDto.getUserName());
+            System.out.println(ResponseEntity.ok(userDto));
+            return ResponseEntity.ok(userDto);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }

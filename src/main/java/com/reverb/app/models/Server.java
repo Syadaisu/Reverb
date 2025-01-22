@@ -85,7 +85,7 @@ public class Server {
 
 
     public int getOwnerId() {
-        return ownerId;
+        return owner.getUserId();
     }
 
     public List<User> getMembers() { return members; }

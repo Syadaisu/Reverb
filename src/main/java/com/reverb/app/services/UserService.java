@@ -3,12 +3,16 @@
 package com.reverb.app.services;
 
 import com.reverb.app.dto.requests.EditUserRequest;
+import com.reverb.app.dto.responses.ChannelDto;
+import com.reverb.app.dto.responses.UserDto;
 import com.reverb.app.models.Attachment;
+import com.reverb.app.models.Channel;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.AttachmentRepository;
 import com.reverb.app.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class UserService {
@@ -92,5 +97,22 @@ public class UserService {
         user.setAvatar(attachment);
         userRepository.save(user);
     }
+
+    @Transactional
+    public UserDto getUserById(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        System.out.println("Data check " + user.getUserName() + " " + user.getEmail() + " " + user.getCreationDate() + " " + user.getAvatarUuid() + " " + user.getUserId());
+
+        return new UserDto(
+                user.getUserId(),
+                user.getUserName(),
+                user.getEmail(),
+                user.getCreationDate(),
+                user.getAvatarUuid()
+        );
+    }
+
 
 }
