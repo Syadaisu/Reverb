@@ -2,12 +2,11 @@ package com.reverb.app.services;
 
 import com.reverb.app.dto.requests.AddMessageRequest;
 import com.reverb.app.dto.requests.EditMessageRequest;
+import com.reverb.app.dto.responses.MessageDocumentDto;
 import com.reverb.app.dto.responses.MessageDto;
-import com.reverb.app.models.Channel;
-import com.reverb.app.models.Message;
-import com.reverb.app.models.Server;
-import com.reverb.app.models.User;
+import com.reverb.app.models.*;
 import com.reverb.app.repositories.ChannelRepository;
+import com.reverb.app.repositories.MessageDocumentRepository;
 import com.reverb.app.repositories.MessageRepository;
 import com.reverb.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +20,168 @@ import java.util.stream.Collectors;
 @Service
 public class MessageService {
 
-    private final MessageRepository messageRepository;
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final MessageDocumentRepository messageDocumentRepository;
 
     @Autowired
+    public MessageService(ChannelRepository channelRepository,
+                          UserRepository userRepository,
+                          MessageDocumentRepository messageDocumentRepository) {
+        this.channelRepository = channelRepository;
+        this.userRepository = userRepository;
+        this.messageDocumentRepository = messageDocumentRepository;
+    }
+
+    /**
+     * Create a new message in MongoDB
+     */
+    @Transactional
+    public MessageDocumentDto createMessage(int authorId, AddMessageRequest request) {
+        // 1. Find channel
+        Channel channel = channelRepository.findById(request.getChannelId())
+                .orElseThrow(() -> new RuntimeException(
+                        "Channel not found with ID: " + request.getChannelId()));
+
+        // 2. Verify author exists
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new RuntimeException(
+                        "User not found with ID: " + authorId));
+
+        // 3. Create MessageDocument
+        MessageDocument messageDoc = new MessageDocument(
+                request.getChannelId(),
+                authorId,
+                request.getBody(),
+                new Date(),
+                false,
+                request.getAttachment(),
+                request.getResponseToId(),
+                request.getResponseTo()
+        );
+
+        // 4. Save to MongoDB
+        MessageDocument savedDoc = messageDocumentRepository.save(messageDoc);
+
+        // 5. Return as DTO
+        return toMessageDocumentDto(savedDoc);
+    }
+
+    /**
+     * Synchronous creation for WebSocket
+     */
+    public MessageDocument createMessageSync(int channelId, int authorId, String body, String responsetoId, String responseto, int Attachment) {
+        // Find channel
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new RuntimeException("Channel not found"));
+
+        // Find author
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Create MessageDocument
+        MessageDocument messageDoc = new MessageDocument(
+                channelId,
+                authorId,
+                body,
+                new Date(),
+                false,
+                Attachment, // Assuming default attachment value
+                responsetoId,
+                responseto
+        );
+
+        // Save to MongoDB
+        return messageDocumentRepository.save(messageDoc);
+    }
+
+    /**
+     * Retrieve messages by channel from MongoDB
+     */
+    public List<MessageDocumentDto> getMessagesByChannel(int channelId) {
+        List<MessageDocument> messageDocs = messageDocumentRepository.findByChannelId(channelId);
+
+        // Convert to MessageDto
+        return messageDocs.stream()
+                .map(this::toMessageDocumentDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Edit a message in MongoDB
+     */
+    @Transactional
+    public MessageDocumentDto editMessage(int userId, String messageId, EditMessageRequest request) {
+        // 1. Find message
+        Optional<MessageDocument> optionalMsgDoc = messageDocumentRepository.findById(messageId);
+        if (!optionalMsgDoc.isPresent()) {
+            throw new RuntimeException("Message not found with ID: " + messageId);
+        }
+
+        MessageDocument messageDoc = optionalMsgDoc.get();
+
+        // 2. Check if user is the author
+        if (!Objects.equals(messageDoc.getAuthorId(), userId)) {
+            throw new RuntimeException("You do not have permission to edit this message.");
+        }
+
+        // 3. Update fields
+        if (request.getBody() != null) {
+            messageDoc.setBody(request.getBody());
+        }
+        if (request.getAttachment() != null) {
+            messageDoc.setAttachment(request.getAttachment());
+        }
+
+        // 4. Save
+        messageDocumentRepository.save(messageDoc);
+
+        return toMessageDocumentDto(messageDoc);
+    }
+
+    /**
+     * Delete (soft-delete) a message in MongoDB
+     */
+    @Transactional
+    public void deleteMessage(int userId, String messageId) {
+        Optional<MessageDocument> optionalMsgDoc = messageDocumentRepository.findById(messageId);
+        if (!optionalMsgDoc.isPresent()) {
+            throw new RuntimeException("Message not found with ID: " + messageId);
+        }
+
+        MessageDocument messageDoc = optionalMsgDoc.get();
+
+        // Only the author can delete
+        if (!Objects.equals(messageDoc.getAuthorId(), userId)) {
+            throw new RuntimeException("You do not have permission to delete this message.");
+        }
+
+        // Soft delete
+        messageDoc.setIsDeleted(true);
+        messageDocumentRepository.save(messageDoc);
+    }
+
+    /**
+     * Helper: Convert MessageDocument to MessageDto
+     */
+    private MessageDocumentDto toMessageDocumentDto(MessageDocument msgDoc) {
+        return new MessageDocumentDto(
+                msgDoc.getMessageId(), // Using MongoDB's ObjectId as messageId
+                msgDoc.getChannelId(),
+                msgDoc.getAuthorId(),
+                msgDoc.getBody(),
+                msgDoc.getCreationDate(),
+                msgDoc.getIsDeleted(),
+                msgDoc.getAttachment(),
+                msgDoc.getResponseToId(),
+                msgDoc.getResponseTo()
+        );
+    }
+}
+
+
+
+    /*@Autowired
     public MessageService(MessageRepository messageRepository,
                           ChannelRepository channelRepository,
                           UserRepository userRepository) {
@@ -151,5 +307,5 @@ public class MessageService {
                 msg.getResponseToId(),
                 msg.getResponseTo()
         );
-    }
-}
+    }*/
+

@@ -5,6 +5,7 @@ import com.reverb.app.dto.responses.*;
 
 import com.reverb.app.models.Channel;
 import com.reverb.app.models.Message;
+import com.reverb.app.models.MessageDocument;
 import com.reverb.app.models.Server;
 import com.reverb.app.services.ServerService;
 import com.reverb.app.services.ChannelService;
@@ -71,7 +72,7 @@ public class WebSocketController {
     }
 
 
-    @MessageMapping("/addMessage")
+    /*@MessageMapping("/addMessage")
     public void addMessage(AddMessageRequest payload) {
         System.out.println("WebSocketController.addMessage: " + payload
                 + " channelId=" + payload.getChannelId()
@@ -103,6 +104,44 @@ public class WebSocketController {
 
         // 3) Broadcast to a dynamic path based on channelId
         // matching what your client is subscribing to, e.g. "/topic/channel.{channelId}.message.added"
+        String destination = "/topic/channel." + payload.getChannelId() + ".message.added";
+        System.out.println("Broadcasting to destination=" + destination);
+
+        messagingTemplate.convertAndSend(destination, response);
+    }*/
+
+    @MessageMapping("/addMessage")
+    public void addMessage(AddMessageRequest payload) {
+        System.out.println("WebSocketController.addMessage: " + payload
+                + " channelId=" + payload.getChannelId()
+                + " authorId=" + payload.getAuthorId()
+                + " body=" + payload.getBody()
+                + " responseToId=" + payload.getResponseToId()
+                + " responseTo=" + payload.getResponseTo());
+
+        // 1) Persist the message in MongoDB
+        MessageDocument saved = messageService.createMessageSync(
+                payload.getChannelId(),
+                payload.getAuthorId(),
+                payload.getBody(),
+                payload.getResponseToId(),
+                payload.getResponseTo(),
+                payload.getAttachment()
+        );
+
+        // 2) Build response DTO
+        AddMessageResponse response = new AddMessageResponse();
+        response.setMessageId(saved.getMessageId()); // MongoDB's ObjectId
+        response.setChannelId(saved.getChannelId());
+        response.setAuthorId(saved.getAuthorId());
+        response.setBody(saved.getBody());
+        response.setCreationDate(saved.getCreationDate());
+        response.setDeleted(saved.getIsDeleted());
+        response.setAttachment(saved.getAttachment());
+        response.setResponseToId(saved.getResponseToId());
+        response.setResponseTo(saved.getResponseTo());
+
+        // 3) Broadcast to a dynamic path based on channelId
         String destination = "/topic/channel." + payload.getChannelId() + ".message.added";
         System.out.println("Broadcasting to destination=" + destination);
 
