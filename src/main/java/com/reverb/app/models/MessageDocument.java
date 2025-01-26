@@ -1,8 +1,5 @@
 package com.reverb.app.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -18,20 +15,20 @@ public class MessageDocument {
     private String body;
     private Date creationDate;
     private Boolean isDeleted;
-    private Integer attachment;
+    private String attachmentUuid;
     private String responseToId;
     private String responseTo;
 
     // Constructors
     public MessageDocument() {}
 
-    public MessageDocument(Integer channelId, Integer authorId, String body, Date creationDate, Boolean isDeleted, Integer attachment, String responseToId, String responseTo) {
+    public MessageDocument(Integer channelId, Integer authorId, String body, Date creationDate, Boolean isDeleted, String attachmentUuid, String responseToId, String responseTo) {
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.creationDate = creationDate;
         this.isDeleted = isDeleted;
-        this.attachment = attachment;
+        this.attachmentUuid = attachmentUuid;
         this.responseToId = responseToId;
         this.responseTo = responseTo;
     }
@@ -85,12 +82,12 @@ public class MessageDocument {
         isDeleted = deleted;
     }
 
-    public Integer getAttachment() {
-        return attachment;
+    public String getAttachmentUuid() {
+        return attachmentUuid;
     }
 
-    public void setAttachment(Integer attachment) {
-        this.attachment = attachment;
+    public void setAttachment(String attachmentUuid) {
+        this.attachmentUuid = attachmentUuid;
     }
 
     public String getResponseToId() {

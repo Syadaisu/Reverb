@@ -117,7 +117,10 @@ public class WebSocketController {
                 + " authorId=" + payload.getAuthorId()
                 + " body=" + payload.getBody()
                 + " responseToId=" + payload.getResponseToId()
-                + " responseTo=" + payload.getResponseTo());
+                + " responseTo=" + payload.getResponseTo()
+                + " attachmentUuid=" + payload.getAttachmentUuid());
+
+
 
         // 1) Persist the message in MongoDB
         MessageDocument saved = messageService.createMessageSync(
@@ -126,7 +129,7 @@ public class WebSocketController {
                 payload.getBody(),
                 payload.getResponseToId(),
                 payload.getResponseTo(),
-                payload.getAttachment()
+                payload.getAttachmentUuid()
         );
 
         // 2) Build response DTO
@@ -137,7 +140,7 @@ public class WebSocketController {
         response.setBody(saved.getBody());
         response.setCreationDate(saved.getCreationDate());
         response.setDeleted(saved.getIsDeleted());
-        response.setAttachment(saved.getAttachment());
+        response.setAttachmentUuid(saved.getAttachmentUuid());
         response.setResponseToId(saved.getResponseToId());
         response.setResponseTo(saved.getResponseTo());
 
@@ -147,4 +150,5 @@ public class WebSocketController {
 
         messagingTemplate.convertAndSend(destination, response);
     }
+
 }

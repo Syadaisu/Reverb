@@ -12,7 +12,7 @@ public class AddMessageResponse {
     private String body;
     private Date creationDate;
     private boolean isDeleted;
-    private int attachment;
+    private String attachmentUuid;
     private String responseToId;
     private String responseTo;
 
@@ -20,14 +20,14 @@ public class AddMessageResponse {
 
     public AddMessageResponse(String messageId, int channelId, int authorId,
                               String body, Date creationDate, boolean isDeleted,
-                              int attachment, String responseToId, String responseTo) {
+                              String attachmentUuid, String responseToId, String responseTo) {
         this.messageId = messageId;
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.creationDate = creationDate;
         this.isDeleted = isDeleted;
-        this.attachment = attachment;
+        this.attachmentUuid = attachmentUuid;
         this.responseToId = responseToId;
         this.responseTo = responseTo;
     }
@@ -75,11 +75,11 @@ public class AddMessageResponse {
         isDeleted = deleted;
     }
 
-    public int getAttachment() {
-        return attachment;
+    public String getAttachmentUuid() {
+        return attachmentUuid;
     }
-    public void setAttachment(int attachment) {
-        this.attachment = attachment;
+    public void setAttachmentUuid(String attachmentUuid) {
+        this.attachmentUuid = attachmentUuid;
     }
 
     public String getResponseToId() {

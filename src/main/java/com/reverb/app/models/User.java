@@ -1,6 +1,7 @@
 // User.java
 package com.reverb.app.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.security.core.GrantedAuthority;
@@ -52,6 +53,9 @@ public class User implements UserDetails {
     @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
     private List<Server> servers;
 
+    @ManyToMany(mappedBy = "authorizedUsers")
+    @JsonIgnore // Prevents recursion during serialization
+    private List<Server> authorizedServers;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
@@ -155,6 +159,22 @@ public class User implements UserDetails {
         return servers;
     }
 
+    public void addAuthorizedServer(Server server) {
+        this.authorizedServers.add(server);
+        server.getAuthorizedUsers().add(this);
+    }
 
+    public void removeAuthorizedServer(Server server) {
+        this.authorizedServers.remove(server);
+        server.getAuthorizedUsers().remove(this);
+    }
+
+    public void setAuthorizedServers(List<Server> authorizedServers) {
+        this.authorizedServers = authorizedServers;
+    }
+
+    public List<Server> getAuthorizedServers() {
+        return authorizedServers;
+    }
 
 }

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -43,6 +44,30 @@ public class MessageController {
 
             // 2. Create the message in MongoDB
             MessageDocumentDto createdMessage = messageService.createMessage(userId, request);
+
+            // 3. Return success
+            return ResponseEntity.ok(createdMessage);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.badRequest().body(
+                    new GenericResponse("Error", "Error creating message: " + ex.getMessage())
+            );
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping(value = "/addAttachmentMessage/{channelId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> addAttachmentMessage(@PathVariable int channelId,
+                                                  @RequestParam("file") MultipartFile file) {
+        try {
+            // 1. Authenticated user from SecurityContext
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            User user = (User) authentication.getPrincipal();
+            int userId = user.getUserId();
+
+            // 2. Create the message in MongoDB
+            MessageDocumentDto createdMessage = messageService.createAttachmentMessage(channelId,userId, file);
 
             // 3. Return success
             return ResponseEntity.ok(createdMessage);

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -35,13 +36,23 @@ public class Server {
     private User owner;
 
 
-    @Column
-    private byte[] avatar;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_uuid", referencedColumnName = "attachment_uuid")
+    private Attachment serverIcon;
 
     @ManyToMany(mappedBy = "servers")
     @JsonIgnore// The "servers" field in User entity
     @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
     private List<User> members;
+
+    @ManyToMany
+    @JoinTable(
+            name = "server_authorized_users",
+            joinColumns = @JoinColumn(name = "server_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @JsonIgnore // Prevent recursion during serialization
+    private List<User> authorizedUsers;
 
     public void setServerName(String serverName) {
         this.serverName = serverName;
@@ -63,8 +74,12 @@ public class Server {
         this.owner = owner;
     }
 
-    public void setAvatar(byte[] avatar) {
-        this.avatar = avatar;
+    public void setServerIcon(Attachment serverIcon) {
+        this.serverIcon = serverIcon;
+    }
+
+    public Attachment getServerIcon() {
+        return serverIcon;
     }
 
     public int getServerId() {
@@ -90,4 +105,22 @@ public class Server {
 
     public List<User> getMembers() { return members; }
     public void setMembers(List<User> members) { this.members = members; }
+
+    public List<User> getAuthorizedUsers() {
+        return authorizedUsers;
+    }
+
+    public void setAuthorizedUsers(List<User> authorizedUsers) {
+        this.authorizedUsers = authorizedUsers;
+    }
+
+    public void addAuthorizedUser(User user) {
+        this.authorizedUsers.add(user);
+        user.getAuthorizedServers().add(this);
+    }
+
+    public void removeAuthorizedUser(User user) {
+        this.authorizedUsers.remove(user);
+        user.getAuthorizedServers().remove(this);
+    }
 }

@@ -5,14 +5,12 @@ import com.reverb.app.dto.requests.EditMessageRequest;
 import com.reverb.app.dto.responses.MessageDocumentDto;
 import com.reverb.app.dto.responses.MessageDto;
 import com.reverb.app.models.*;
-import com.reverb.app.repositories.ChannelRepository;
-import com.reverb.app.repositories.MessageDocumentRepository;
-import com.reverb.app.repositories.MessageRepository;
-import com.reverb.app.repositories.UserRepository;
+import com.reverb.app.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,14 +21,17 @@ public class MessageService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final MessageDocumentRepository messageDocumentRepository;
+    private final AttachmentRepository attachmentRepository;
 
     @Autowired
     public MessageService(ChannelRepository channelRepository,
                           UserRepository userRepository,
-                          MessageDocumentRepository messageDocumentRepository) {
+                          MessageDocumentRepository messageDocumentRepository,
+                          AttachmentRepository attachmentRepository) {
         this.channelRepository = channelRepository;
         this.userRepository = userRepository;
         this.messageDocumentRepository = messageDocumentRepository;
+        this.attachmentRepository = attachmentRepository;
     }
 
     /**
@@ -48,6 +49,7 @@ public class MessageService {
                 .orElseThrow(() -> new RuntimeException(
                         "User not found with ID: " + authorId));
 
+
         // 3. Create MessageDocument
         MessageDocument messageDoc = new MessageDocument(
                 request.getChannelId(),
@@ -55,7 +57,7 @@ public class MessageService {
                 request.getBody(),
                 new Date(),
                 false,
-                request.getAttachment(),
+                request.getAttachmentUuid(),
                 request.getResponseToId(),
                 request.getResponseTo()
         );
@@ -67,10 +69,46 @@ public class MessageService {
         return toMessageDocumentDto(savedDoc);
     }
 
+    public MessageDocumentDto createAttachmentMessage(int channelId, int authorId, MultipartFile file){
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new RuntimeException("Channel not found"));
+
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Attachment attachment = new Attachment();
+        try {
+            attachment.setAttachmentData(file.getBytes());
+            attachment.setContentType(file.getContentType());
+        } catch (Exception e) {
+            throw new RuntimeException("Error uploading attachment: " + e.getMessage());
+        }
+
+        // Save attachment
+        attachment = attachmentRepository.save(attachment);
+
+        // Create MessageDocument
+        MessageDocument messageDoc = new MessageDocument(
+                channelId,
+                authorId,
+                "",
+                new Date(),
+                false,
+                attachment.getAttachmentUuid(),
+                "",
+                ""
+        );
+
+        // Save to MongoDB
+        MessageDocument savedDoc = messageDocumentRepository.save(messageDoc);
+
+        return toMessageDocumentDto(savedDoc);
+    }
+
     /**
      * Synchronous creation for WebSocket
      */
-    public MessageDocument createMessageSync(int channelId, int authorId, String body, String responsetoId, String responseto, int Attachment) {
+    public MessageDocument createMessageSync(int channelId, int authorId, String body, String responsetoId, String responseto, String Attachment) {
         // Find channel
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new RuntimeException("Channel not found"));
@@ -129,8 +167,8 @@ public class MessageService {
         if (request.getBody() != null) {
             messageDoc.setBody(request.getBody());
         }
-        if (request.getAttachment() != null) {
-            messageDoc.setAttachment(request.getAttachment());
+        if (request.getAttachmentUuid() != null) {
+            messageDoc.setAttachment(request.getAttachmentUuid());
         }
 
         // 4. Save
@@ -172,7 +210,7 @@ public class MessageService {
                 msgDoc.getBody(),
                 msgDoc.getCreationDate(),
                 msgDoc.getIsDeleted(),
-                msgDoc.getAttachment(),
+                msgDoc.getAttachmentUuid(),
                 msgDoc.getResponseToId(),
                 msgDoc.getResponseTo()
         );

@@ -2,14 +2,14 @@ package com.reverb.app.dto.requests;
 
 public class EditMessageRequest {
     private String body;
-    private Integer attachment;
+    private String attachmentUuid;
 
     public EditMessageRequest() {
     }
 
-    public EditMessageRequest(String body, Integer attachment) {
+    public EditMessageRequest(String body, String attachmentUuid) {
         this.body = body;
-        this.attachment = attachment;
+        this.attachmentUuid = attachmentUuid;
     }
 
     // Getters and Setters
@@ -21,11 +21,11 @@ public class EditMessageRequest {
         this.body = body;
     }
 
-    public Integer getAttachment() {
-        return attachment;
+    public String getAttachmentUuid() {
+        return attachmentUuid;
     }
 
-    public void setAttachment(Integer attachment) {
-        this.attachment = attachment;
+    public void setAttachmentUuid(String attachment) {
+        this.attachmentUuid = attachmentUuid;
     }
 }

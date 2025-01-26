@@ -9,13 +9,15 @@ public class ServerDto {
     private String description;
     private Boolean isPublic;
     private int ownerId;
+    private String serverIconUuid;
 
-    public ServerDto(int serverId, String serverName, String description, Boolean isPublic, int ownerId) {
+    public ServerDto(int serverId, String serverName, String description, Boolean isPublic, int ownerId, String serverIconUuid) {
         this.serverId = serverId;
         this.serverName = serverName;
         this.description = description;
         this.isPublic = isPublic;
         this.ownerId = ownerId;
+        this.serverIconUuid = serverIconUuid;
     }
 
     // Getters and setters
@@ -59,6 +61,14 @@ public class ServerDto {
         this.ownerId = ownerId;
     }
 
+    public String getServerIconUuid() {
+        return serverIconUuid;
+    }
+
+    public void setServerIconUuid(String serverIconUuid) {
+        this.serverIconUuid = serverIconUuid;
+    }
+
     @Override
     public String toString() {
         return "ServerDto{" +
@@ -67,6 +77,7 @@ public class ServerDto {
                 ", description='" + description + '\'' +
                 ", isPublic=" + isPublic + '\'' +
                 ", ownerId=" + ownerId +
+                ", serverIconUuid=" + serverIconUuid +
                 '}';
     }
 }

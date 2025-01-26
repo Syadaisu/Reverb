@@ -2,9 +2,7 @@ package com.reverb.app.controllers;
 
 import com.reverb.app.dto.requests.AddServerRequest;
 import com.reverb.app.dto.requests.EditServerRequest;
-import com.reverb.app.dto.responses.AddServerResponse;
-import com.reverb.app.dto.responses.GenericResponse;
-import com.reverb.app.dto.responses.ServerDto;
+import com.reverb.app.dto.responses.*;
 import com.reverb.app.models.Server;
 import com.reverb.app.models.User;
 import com.reverb.app.repositories.UserRepository;
@@ -19,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -144,7 +143,8 @@ public class ServerController {
                         server.getServerName(),
                         server.getDescription(),
                         server.getIsPublic(),
-                        server.getOwnerId()
+                        server.getOwnerId(),
+                        server.getServerIconUuid()
                 ))
                 .collect(Collectors.toList());
         System.out.println("Mapped response: " + response);
@@ -266,4 +266,31 @@ public class ServerController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping("/grantAdmin")
+    public ResponseEntity<String> grantAdmin(
+            @RequestParam String serverName,
+            @RequestParam int userId
+    ) {
+        try {
+            serverService.grantAuthority(serverName, userId);
+            return ResponseEntity.ok("User " + userId + " granted admin on server " + serverName);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error granting admin: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PutMapping(value = "/avatar/{serverId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<EditServerResponse> updateServer(
+            @PathVariable int serverId,
+            @RequestPart("avatar") MultipartFile avatar
+    ) {
+        try {
+            serverService.updateServerAvatar(serverId,avatar);
+            return ResponseEntity.ok(new EditServerResponse("Avatar updated successfully."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new EditServerResponse("Error updating avatar: " + e.getMessage()));
+        }
+    }
 }

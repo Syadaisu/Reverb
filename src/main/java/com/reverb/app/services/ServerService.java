@@ -1,8 +1,10 @@
 package com.reverb.app.services;
 
 import com.reverb.app.dto.responses.ServerDto;
+import com.reverb.app.models.Attachment;
 import com.reverb.app.models.Server;
 import com.reverb.app.models.User;
+import com.reverb.app.repositories.AttachmentRepository;
 import com.reverb.app.repositories.ChannelRepository;
 import com.reverb.app.repositories.ServerRepository;
 import com.reverb.app.repositories.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,12 +29,14 @@ public class ServerService {
     private final ServerRepository serverRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+    private final AttachmentRepository attachmentRepository;
 
     @Autowired
-    public ServerService(ServerRepository serverRepository, UserRepository userRepository, ChannelRepository channelRepository) {
+    public ServerService(ServerRepository serverRepository, UserRepository userRepository, ChannelRepository channelRepository, AttachmentRepository attachmentRepository) {
         this.serverRepository = serverRepository;
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
+        this.attachmentRepository = attachmentRepository;
     }
 
 
@@ -47,7 +52,7 @@ public class ServerService {
             server.setDescription(description);
             server.setIsPublic(true);
             server.setOwnerId(ownerId);
-            server.setAvatar(null);
+            server.setServerIcon(null);
             server.setOwner(owner); // Link the owner
 
             return serverRepository.save(server);
@@ -66,18 +71,24 @@ public class ServerService {
         server.setDescription(description);
         server.setIsPublic(true);
         server.setOwnerId(ownerId);
-        server.setAvatar(null);
+        server.setServerIcon(null);
         server.setOwner(owner);
 
         if (server.getMembers() == null) {
             server.setMembers(new ArrayList<>());
+        }
+
+        if (server.getAuthorizedUsers() == null) {
+            server.setAuthorizedUsers(new ArrayList<>());
         }
         // 3) Save the server
         server = serverRepository.save(server);
 
         // 4) Automatically join the owner to the server by calling joinServer
         joinServer(server.getServerName(), ownerId);
+        grantAuthority(server.getServerName(), ownerId);
 
+        System.out.println("Server created: " + server.getServerName() + " by " + owner.getUserName() + " authority check " + server.getAuthorizedUsers());
         // 5) Return the fully created server
         return server;
     }
@@ -119,7 +130,8 @@ public class ServerService {
                                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                                 server.getDescription() != null ? server.getDescription() : "No description available",
                                 server.getIsPublic() != null ? server.getIsPublic() : false,
-                                server.getOwnerId()
+                                server.getOwnerId(),
+                                server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
                         ))
                         .collect(Collectors.toList());
 
@@ -153,7 +165,9 @@ public class ServerService {
                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                 server.getDescription() != null ? server.getDescription() : "No description",
                 server.getIsPublic() != null ? server.getIsPublic() : false,
-                server.getOwnerId()
+                server.getOwnerId(),
+                server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
+
         );
     }
 
@@ -172,7 +186,8 @@ public class ServerService {
                                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                                 server.getDescription() != null ? server.getDescription() : "No description available",
                                 server.getIsPublic() != null ? server.getIsPublic() : false,
-                                server.getOwnerId()
+                                server.getOwnerId(),
+                                server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
                         ))
                         .collect(Collectors.toList());
             } catch (Exception e) {
@@ -221,7 +236,8 @@ public class ServerService {
                     updatedServer.getServerName(),
                     updatedServer.getDescription(),
                     updatedServer.getIsPublic() != null ? updatedServer.getIsPublic() : false,
-                    updatedServer.getOwnerId()
+                    updatedServer.getOwnerId(),
+                    updatedServer.getServerIcon() != null ? updatedServer.getServerIcon().getAttachmentUuid() : null
             );
         });
     }
@@ -239,7 +255,8 @@ public class ServerService {
                     server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                     server.getDescription() != null ? server.getDescription() : "No description available",
                     server.getIsPublic() != null ? server.getIsPublic() : false,
-                    server.getOwnerId()
+                    server.getOwnerId(),
+                    server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
             );
         });
     }
@@ -271,5 +288,61 @@ public class ServerService {
         userRepository.save(user);   // Persist the new link
         serverRepository.save(server);
 
+    }
+
+    @Transactional
+    public void grantAuthority(String serverName, int userId){
+        Server server = serverRepository.findByServerName(serverName)
+                .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
+
+        // 2) find the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No user found with id: " + userId));
+
+        // 3) Add user to server's members if not already
+        if (!server.getAuthorizedUsers().contains(user)) {
+            server.getAuthorizedUsers().add(user);
+        }
+
+        // 4) Also add the server to user’s servers if not already
+        if (!user.getAuthorizedServers().contains(server)) {
+            user.getAuthorizedServers().add(server);
+        }
+
+        // 5) Save the "owning" side or both to ensure the link is persisted
+        // Typically, the side with @JoinTable is the "owning" side - that’s the user in this example
+        // So saving user might be enough. But to be safe, you can save both:
+
+        System.out.println("Server with admin users: " + server.getAuthorizedUsers());
+        userRepository.save(user);   // Persist the new link
+        serverRepository.save(server);
+    }
+
+    @Transactional
+    public void updateServerAvatar(int serverId, MultipartFile serverIcon) throws Exception {
+        // 1) Identify current user
+        Server server = serverRepository.findById(serverId)
+                .orElseThrow(() -> new Exception("Authenticated user not found"));
+
+        // 2) If avatar is empty => maybe remove or throw error
+        if (serverIcon == null || serverIcon.isEmpty()) {
+            throw new Exception("No avatar file provided.");
+        }
+
+        // 3) If user has an existing attachment or not
+        Attachment attachment;
+        if (server.getServerIcon() != null) {
+            attachment = server.getServerIcon();
+        } else {
+            attachment = new Attachment();
+        }
+        attachment.setAttachmentData(serverIcon.getBytes());
+        attachment.setContentType(serverIcon.getContentType());
+        System.out.println("AttachmentService.uploadAvatar: " + attachment.getAttachmentUuid() + " " + attachment.getContentType() + " " + attachment.getAttachmentData().length);
+        attachmentRepository.save(attachment); // ensure stored
+
+        server.setServerIcon(attachment);
+        System.out.println("ServerService.updateServerAvatar: " + server.getServerIcon().getAttachmentUuid() + " " + server.getServerIcon().getContentType() + " " + server.getServerIcon().getAttachmentData().length);
+        serverRepository.save(server);
     }
 }

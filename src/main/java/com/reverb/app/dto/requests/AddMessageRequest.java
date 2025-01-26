@@ -8,18 +8,18 @@ public class AddMessageRequest {
     private String body;        // message text
     private String responseToId;
     private String responseTo;
-    private int attachment;     // optional, default 0
+    private String attachmentUuid;     // optional, default 0
 
     public AddMessageRequest() {}
 
     public AddMessageRequest(int channelId, int authorId, String body,
-                             String responseToId, String responseTo, int attachment) {
+                             String responseToId, String responseTo, String attachmentUuid) {
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.responseToId = responseToId;
         this.responseTo = responseTo;
-        this.attachment = attachment;
+        this.attachmentUuid = attachmentUuid;
     }
 
     // Getters and setters
@@ -58,11 +58,11 @@ public class AddMessageRequest {
         this.responseTo = responseTo;
     }
 
-    public int getAttachment() {
-        return attachment;
+    public String getAttachmentUuid() {
+        return attachmentUuid;
     }
-    public void setAttachment(int attachment) {
-        this.attachment = attachment;
+    public void setAttachmentUuid(String attachmentUuid) {
+        this.attachmentUuid = attachmentUuid;
     }
 
 }

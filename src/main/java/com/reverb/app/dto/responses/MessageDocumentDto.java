@@ -10,21 +10,21 @@ public class MessageDocumentDto {
     private String body;
     private Date creationDate;
     private Boolean isDeleted;
-    private Integer attachment;
+    private String attachmentUuid;
     private String responseToId;
     private String responseTo;
 
     // Constructors
     public MessageDocumentDto() {}
 
-    public MessageDocumentDto(String messageId, Integer channelId, Integer authorId, String body, Date creationDate, Boolean isDeleted, Integer attachment, String responseToId, String responseTo) {
+    public MessageDocumentDto(String messageId, Integer channelId, Integer authorId, String body, Date creationDate, Boolean isDeleted, String attachmentUuid, String responseToId, String responseTo) {
         this.messageId = messageId;
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.creationDate = creationDate;
         this.isDeleted = isDeleted;
-        this.attachment = attachment;
+        this.attachmentUuid = attachmentUuid;
         this.responseToId = responseToId;
         this.responseTo = responseTo;
     }
@@ -79,12 +79,12 @@ public class MessageDocumentDto {
         isDeleted = deleted;
     }
 
-    public Integer getAttachment() {
-        return attachment;
+    public String getAttachmentUuid() {
+        return attachmentUuid;
     }
 
-    public void setAttachment(Integer attachment) {
-        this.attachment = attachment;
+    public void setAttachment(String attachmentUuid) {
+        this.attachmentUuid = attachmentUuid;
     }
 
     public String getResponseToId() {

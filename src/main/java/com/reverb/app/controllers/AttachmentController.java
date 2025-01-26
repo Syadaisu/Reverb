@@ -1,6 +1,9 @@
 package com.reverb.app.controllers;
 
 import com.reverb.app.models.Attachment;
+import com.reverb.app.models.Message;
+import com.reverb.app.models.MessageDocument;
+import com.reverb.app.repositories.MessageDocumentRepository;
 import com.reverb.app.services.AttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -17,6 +20,8 @@ public class AttachmentController {
 
     @Autowired
     private AttachmentService attachmentService;
+    @Autowired
+    private MessageDocumentRepository messageDocumentRepository;
 
 
     @PostMapping(value = "/upload/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -33,6 +38,34 @@ public class AttachmentController {
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ex.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/uploadMessageAttachment/{messageId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadMessageAttachment(
+            @PathVariable String messageId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        try {
+            attachmentService.uploadMessageAttachment(messageId, file);
+            return ResponseEntity.ok("Avatar uploaded successfully for message " + messageId);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error uploading avatar: " + e.getMessage());
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ex.getMessage());
+        }
+    }
+
+    @PostMapping(value= "/uploadFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            String attachmentUuid = attachmentService.uploadFile(file);
+            return ResponseEntity.ok(attachmentUuid);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error uploading file: " + e.getMessage());
         }
     }
 

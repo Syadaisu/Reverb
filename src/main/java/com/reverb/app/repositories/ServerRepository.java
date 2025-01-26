@@ -18,5 +18,7 @@ public interface ServerRepository extends CrudRepository<Server, Integer> {
 
     List<Server> findAll();
 
+    Optional<Server> findByServerId(int serverId);
+
 
 }

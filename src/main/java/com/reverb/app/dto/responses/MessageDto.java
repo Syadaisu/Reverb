@@ -4,39 +4,39 @@ import java.util.Date;
 
 public class MessageDto {
 
-    private Integer messageId;
+    private String messageId;
     private Integer channelId;
     private Integer authorId;
     private String body;
     private Date creationDate;
     private Boolean isDeleted;
-    private Integer attachment;
+    private String attachmentUuid;
     private String responseToId;
     private String responseTo;
 
     public MessageDto() {
     }
 
-    public MessageDto(Integer messageId, Integer channelId, Integer authorId,
+    public MessageDto(String messageId, Integer channelId, Integer authorId,
                       String body, Date creationDate, Boolean isDeleted,
-                      Integer attachment, String responseToId, String responseTo) {
+                      String attachmentUuid, String responseToId, String responseTo) {
         this.messageId = messageId;
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.creationDate = creationDate;
         this.isDeleted = isDeleted;
-        this.attachment = attachment;
+        this.attachmentUuid = attachmentUuid;
         this.responseToId = responseToId;
         this.responseTo = responseTo;
     }
 
     // Getters and Setters
-    public Integer getMessageId() {
+    public String getMessageId() {
         return messageId;
     }
 
-    public void setMessageId(Integer messageId) {
+    public void setMessageId(String messageId) {
         this.messageId = messageId;
     }
 
@@ -80,12 +80,12 @@ public class MessageDto {
         isDeleted = deleted;
     }
 
-    public Integer getAttachment() {
-        return attachment;
+    public String getattachmentUuid() {
+        return attachmentUuid;
     }
 
-    public void setAttachment(Integer attachment) {
-        this.attachment = attachment;
+    public void setAttachment(String attachmentUuid) {
+        this.attachmentUuid = attachmentUuid;
     }
 
     public String getResponseToId() {
