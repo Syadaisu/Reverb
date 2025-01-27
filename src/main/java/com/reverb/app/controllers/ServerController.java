@@ -65,11 +65,11 @@ public class ServerController {
             }
 
             // 3. Create the server (blocking call if your service is async)
-            Server savedServer = serverService.addServer(
+            Server savedServer = serverService.addServerSync(
                     request.getServerName(),
                     request.getServerDescription(),
                     ownerId
-            ).join();
+            );
 
             // 4. Build and return the success response
             AddServerResponse successResp = new AddServerResponse(
@@ -281,6 +281,35 @@ public class ServerController {
     }
 
     @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping("/grantAdminByEmail/{serverId}")
+    public ResponseEntity<String> grantAdminByEmail(
+            @PathVariable int serverId,
+            @RequestParam String email
+    ) {
+        try {
+            System.out.println("Granting admin to email: " + email);
+            serverService.grantAuthorityByEmail(serverId, email);
+            return ResponseEntity.ok("User with email " + email + " granted admin on server " + serverId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error granting admin: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping("/revokeAdmin")
+    public ResponseEntity<String> revokeAdmin(
+            @RequestParam String serverName,
+            @RequestParam String email
+    ) {
+        try {
+            serverService.revokeAuthority(serverName, email);
+            return ResponseEntity.ok("User " + email + " revoked admin on server " + serverName);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error revoking admin: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PutMapping(value = "/avatar/{serverId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<EditServerResponse> updateServer(
             @PathVariable int serverId,
@@ -291,6 +320,17 @@ public class ServerController {
             return ResponseEntity.ok(new EditServerResponse("Avatar updated successfully."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new EditServerResponse("Error updating avatar: " + e.getMessage()));
+        }
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @GetMapping("/getServerAdminIds/{serverId}")
+    public ResponseEntity<List<Integer>> getServerAdminIds(@PathVariable int serverId) {
+        try {
+            List<Integer> adminIds = serverService.getServerAdminIds(serverId);
+            return ResponseEntity.ok(adminIds);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(List.of());
         }
     }
 }

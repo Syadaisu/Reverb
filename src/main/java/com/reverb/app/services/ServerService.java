@@ -39,7 +39,7 @@ public class ServerService {
         this.attachmentRepository = attachmentRepository;
     }
 
-
+    @Transactional
     @Async("securityAwareExecutor")
     public CompletableFuture<Server> addServer(String serverName, String description, int ownerId) {
         return CompletableFuture.supplyAsync(() -> {
@@ -55,7 +55,19 @@ public class ServerService {
             server.setServerIcon(null);
             server.setOwner(owner); // Link the owner
 
-            return serverRepository.save(server);
+
+            if (server.getMembers() == null) {
+                server.setMembers(new ArrayList<>());
+            }
+
+            if (server.getAuthorizedUsers() == null) {
+                server.setAuthorizedUsers(new ArrayList<>());
+            }
+            server = serverRepository.save(server);
+            joinServer(serverName, ownerId);
+            grantAuthority(serverName, ownerId);
+
+            return server;
         });
     }
 
@@ -319,6 +331,53 @@ public class ServerService {
     }
 
     @Transactional
+    public void grantAuthorityByEmail(int serverId, String email){
+        Server server = serverRepository.findByServerId(serverId)
+                .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverId));
+
+        // 2) find the user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
+
+        System.out.println("User email found: " + user.getEmail());
+        // 3) Add user to server's members if not already
+        if (!server.getAuthorizedUsers().contains(user)) {
+            server.getAuthorizedUsers().add(user);
+        }
+
+        // 4) Also add the server to user’s servers if not already
+        if (!user.getAuthorizedServers().contains(server)) {
+            user.getAuthorizedServers().add(server);
+        }
+
+        // 5) Save the "owning" side or both to ensure the link is persisted
+        // Typically, the side with @JoinTable is the "owning" side - that’s the user in this example
+        // So saving user might be enough. But to be safe, you can save both:
+
+        System.out.println("Server with admin users: " + server.getAuthorizedUsers());
+        userRepository.save(user);   // Persist the new link
+        serverRepository.save(server);
+    }
+
+    @Transactional
+    public void revokeAuthority (String serverName, String email){
+        Server server = serverRepository.findByServerName(serverName)
+                .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
+
+        // 2) find the user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
+
+        // 3) Remove user from server's members if not already
+        if (server.getAuthorizedUsers().contains(user)) {
+            server.getAuthorizedUsers().remove(user);
+        }
+
+        serverRepository.save(server);
+
+    }
+
+    @Transactional
     public void updateServerAvatar(int serverId, MultipartFile serverIcon) throws Exception {
         // 1) Identify current user
         Server server = serverRepository.findById(serverId)
@@ -344,5 +403,17 @@ public class ServerService {
         server.setServerIcon(attachment);
         System.out.println("ServerService.updateServerAvatar: " + server.getServerIcon().getAttachmentUuid() + " " + server.getServerIcon().getContentType() + " " + server.getServerIcon().getAttachmentData().length);
         serverRepository.save(server);
+    }
+
+    @Transactional
+    public List<Integer> getServerAdminIds(int serverId) {
+        Server server = serverRepository.findById(serverId)
+                .orElseThrow(() -> new RuntimeException("Server not found with ID: " + serverId));
+        List<User> admins = server.getAuthorizedUsers();
+        List<Integer> adminIds = admins.stream()
+                .map(User::getUserId)
+                .collect(Collectors.toList());
+        System.out.println("Admins for server " + serverId + ": " + adminIds);
+        return adminIds;
     }
 }
