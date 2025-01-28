@@ -16,6 +16,9 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.util.Collections;
+import java.util.Map;
+
 @Controller
 public class WebSocketController {
 
@@ -151,4 +154,81 @@ public class WebSocketController {
         messagingTemplate.convertAndSend(destination, response);
     }
 
+    @MessageMapping("/editServerSignal")
+    public void editServerSignal(Map<String, Object> payload) {
+        // Suppose payload has "serverId"
+        Object serverId = payload.get("serverId");
+
+        // You do your normal REST/DB logic somewhere else (or in a service).
+        // Then broadcast a minimal signal to a topic:
+        messagingTemplate.convertAndSend(
+                "/topic/server.edited", // topic name
+                Collections.singletonMap("serverId", serverId)
+        );
+    }
+
+    @MessageMapping("/editChannelSignal")
+    public void editChannelSignal(Map<String, Object> payload) {
+        // Suppose payload has "serverId"
+        Object channelId = payload.get("channelId");
+
+        // You do your normal REST/DB logic somewhere else (or in a service).
+        // Then broadcast a minimal signal to a topic:
+        messagingTemplate.convertAndSend(
+                "/topic/channel.edited", // topic name
+                Collections.singletonMap("channelId", channelId)
+        );
+    }
+
+    @MessageMapping("/deleteChannelSignal")
+    public void deleteChannelSignal(Map<String, Object> payload) {
+        // Suppose payload has "channelId"
+        Object channelId = payload.get("channelId");
+
+        // After actually deleting the channel in DB,
+        // broadcast a tiny message that "hey, channelId is deleted"
+        messagingTemplate.convertAndSend(
+                "/topic/channel.deleted",
+                Collections.singletonMap("channelId", channelId)
+        );
+    }
+
+    @MessageMapping("/deleteServerSignal")
+    public void deleteServerSignal(Map<String, Object> payload) {
+        // Suppose payload has "channelId"
+        Object serverId = payload.get("serverId");
+
+        // After actually deleting the channel in DB,
+        // broadcast a tiny message that "hey, channelId is deleted"
+        messagingTemplate.convertAndSend(
+                "/topic/server.deleted",
+                Collections.singletonMap("serverId", serverId)
+        );
+    }
+
+    @MessageMapping("/editUserSignal")
+    public void editUserSignal(Map<String, Object> payload) {
+        // Suppose payload has "channelId"
+        Object userId = payload.get("userId");
+
+        // After actually deleting the channel in DB,
+        // broadcast a tiny message that "hey, channelId is deleted"
+        messagingTemplate.convertAndSend(
+                "/topic/user.edited",
+                Collections.singletonMap("userId", userId)
+        );
+    }
+
+    @MessageMapping("/deleteMessageSignal")
+    public void deleteMessageSignal(Map<String, Object> payload) {
+        // Suppose payload has "channelId"
+        Object messageId = payload.get("messageId");
+
+        // After actually deleting the channel in DB,
+        // broadcast a tiny message that "hey, channelId is deleted"
+        messagingTemplate.convertAndSend(
+                "/topic/message.deleted",
+                Collections.singletonMap("messageId", messageId)
+        );
+    }
 }

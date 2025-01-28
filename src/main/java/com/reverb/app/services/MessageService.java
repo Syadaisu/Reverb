@@ -188,14 +188,17 @@ public class MessageService {
         }
 
         MessageDocument messageDoc = optionalMsgDoc.get();
-
+        System.out.println(messageDoc.getAuthorId());
         // Only the author can delete
         if (!Objects.equals(messageDoc.getAuthorId(), userId)) {
             throw new RuntimeException("You do not have permission to delete this message.");
         }
 
         // Soft delete
-        messageDoc.setIsDeleted(true);
+        //messageDoc.setIsDeleted(true);
+
+        // Hard delete
+        messageDocumentRepository.deleteById(messageId);
         messageDocumentRepository.save(messageDoc);
     }
 
