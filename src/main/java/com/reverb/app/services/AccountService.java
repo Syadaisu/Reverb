@@ -7,17 +7,13 @@ import com.reverb.app.repositories.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import java.util.stream.Collectors;
-
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 @Service
@@ -55,19 +51,19 @@ public class AccountService {
     }
 
     public CompletableFuture<Map<String, Object>> login(String email, String password) {
-        System.out.println("AccountServiceLogin");
+        //System.out.println("AccountServiceLogin");
         return CompletableFuture.supplyAsync(() -> {
-            System.out.println("DatabaseCheck " + email + " " + password);
+            //System.out.println("DatabaseCheck " + email + " " + password);
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("Invalid email or password"));
 
             if (!passwordEncoder.matches(password, user.getPassword())) {
                 throw new RuntimeException("Invalid email or password");
             }
-            System.out.println("DatabaseCheckDone");
+            //System.out.println("DatabaseCheckDone");
             String accessToken = generateAccessToken(user);
             String refreshToken = generateRefreshToken(String.valueOf(user.getUserId()));
-            System.out.println("TokenGenDone");
+            //System.out.println("TokenGenDone");
             Attachment avatar = user.getAvatar() != null ? user.getAvatar() : null;
             String avatarUuid = null;
             if (avatar != null) {
@@ -78,14 +74,14 @@ public class AccountService {
             response.put("accessToken", accessToken);
             response.put("refreshToken", refreshToken);
             response.put("avatarUuid", avatarUuid); ;
-            System.out.println("ResponseDone " + response);
+            //System.out.println("ResponseDone " + response);
 
             return response;
         });
     }
 
     public String generateAccessToken(User user) {
-        System.out.println("SecretKey" + jwtSecret);
+        //System.out.println("SecretKey" + jwtSecret);
         return Jwts.builder()
                 .setSubject(String.valueOf(user.getUserId()))
                 .claim("username", user.getUserName())
@@ -153,10 +149,10 @@ public class AccountService {
                     .parseSignedClaims(token)
                     .getBody();
             String userName = claims.getSubject();
-            System.out.println("Validaton: " + userName + "Claims: " + claims);
+            //System.out.println("Validaton: " + userName + "Claims: " + claims);
             return (userName.equals(user.getUserName()) && !isTokenExpired(claims));
         } catch (JwtException | IllegalArgumentException e) {
-            System.out.println("Invalid token: " + e.getMessage());
+            //System.out.println("Invalid token: " + e.getMessage());
             return false;
         }
     }

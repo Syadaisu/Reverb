@@ -1,18 +1,13 @@
 package com.reverb.app.controllers;
 
 import com.reverb.app.models.Attachment;
-import com.reverb.app.models.Message;
-import com.reverb.app.models.MessageDocument;
 import com.reverb.app.repositories.MessageDocumentRepository;
 import com.reverb.app.services.AttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @RestController
 @RequestMapping("/attachment")
@@ -77,7 +72,6 @@ public class AttachmentController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            // Determine content type
             MediaType mediaType = MediaType.parseMediaType(avatar.getContentType());
 
             return ResponseEntity.ok()
@@ -97,7 +91,6 @@ public class AttachmentController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            // Determine content type
             MediaType mediaType = MediaType.parseMediaType(avatar.getContentType());
 
             return ResponseEntity.ok()

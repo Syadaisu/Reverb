@@ -10,7 +10,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,14 +44,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 List<String> roles = claims.get("roles", List.class);
                 List<GrantedAuthority> authorities = roles.stream()
-                        .map(role -> new SimpleGrantedAuthority(role)) // Ensure roles have "ROLE_" prefix if needed
+                        .map(role -> new SimpleGrantedAuthority(role))
                         .collect(Collectors.toList());
 
-                System.out.println("Token: " + token);
-                System.out.println("UserID from token: " + userId + " Roles: " + authorities);
+                //System.out.println("Token: " + token);
+                //System.out.println("UserID from token: " + userId + " Roles: " + authorities);
 
             } catch (RuntimeException e) {
-                System.out.println("Invalid JWT Token: " + token);
+                //System.out.println("Invalid JWT Token: " + token);
             }
         }
 
@@ -65,18 +64,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new RuntimeException(e);
             }
             if (user != null && jwtTokenUtil.validateToken(token, userId.toString())) {
-                System.out.println("User found: " + user.getUserName());
+                //System.out.println("User found: " + user.getUserName());
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         user, null, user.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                System.out.println("Authentication set in SecurityContext");
+                //System.out.println("Authentication set in SecurityContext");
             } else {
-                System.out.println("User not found or token invalid");
+                //System.out.println("User not found or token invalid");
             }
         }
 
-        System.out.println("Authentication after filter: " + SecurityContextHolder.getContext().getAuthentication());
+        //System.out.println("Authentication after filter: " + SecurityContextHolder.getContext().getAuthentication());
         chain.doFilter(request, response);
     }
 }

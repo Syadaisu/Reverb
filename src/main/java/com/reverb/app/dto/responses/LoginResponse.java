@@ -15,7 +15,6 @@ public class LoginResponse {
     @JsonProperty("user")
     private UserDto user;
 
-    // Constructor, getters, and setters
     public LoginResponse(String accessToken, String refreshToken, UserDto user) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;

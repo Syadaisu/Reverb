@@ -4,22 +4,18 @@ public class ChannelDto {
     private int channelId;
     private String channelName;
     private int serverId;    // so the client knows which server this channel belongs to
-    private String roleAccess;
     private String description;
 
-    // Constructors
     public ChannelDto() {
     }
 
-    public ChannelDto(int channelId, String channelName, int serverId, String roleAccess, String description) {
+    public ChannelDto(int channelId, String channelName, int serverId, String description) {
         this.channelId = channelId;
         this.channelName = channelName;
         this.serverId = serverId;
-        this.roleAccess = roleAccess;
         this.description = description;
     }
 
-    // Getters and Setters
     public int getChannelId() {
         return channelId;
     }
@@ -42,14 +38,6 @@ public class ChannelDto {
 
     public void setServerId(int serverId) {
         this.serverId = serverId;
-    }
-
-    public String getRoleAccess() {
-        return roleAccess;
-    }
-
-    public void setRoleAccess(String roleAccess) {
-        this.roleAccess = roleAccess;
     }
 
     public String getDescription() {

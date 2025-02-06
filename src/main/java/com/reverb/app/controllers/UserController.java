@@ -3,23 +3,15 @@ package com.reverb.app.controllers;
 import com.reverb.app.dto.requests.EditUserRequest;
 import com.reverb.app.dto.responses.EditUserResponse;
 import com.reverb.app.dto.responses.UserDto;
-import com.reverb.app.models.User;
 import com.reverb.app.services.AttachmentService;
 import com.reverb.app.services.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
 @RestController
 @RequestMapping("/user")
@@ -41,17 +33,14 @@ public class UserController {
             @PathVariable int userId,
             @RequestBody EditUserRequest editUserRequest
     ) {
-
-        // If no JSON data is provided, create an empty request object
         if (editUserRequest == null) {
             editUserRequest = new EditUserRequest();
         }
-        System.out.println("Edit user controller" + editUserRequest.getUserName());
+        //System.out.println("Edit user controller" + editUserRequest.getUserName());
         try {
             userService.editUserData(userId,editUserRequest);
-            System.out.println("User updated successfully.");
+            //System.out.println("User updated successfully.");
             return ResponseEntity.ok(new EditUserResponse("User updated successfully."));
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new EditUserResponse("Error updating user: " + e.getMessage()));
         }
@@ -78,8 +67,8 @@ public class UserController {
     ) {
         try {
             UserDto userDto = userService.getUserById(userId);
-            System.out.println("User found: " + userDto.getUserName());
-            System.out.println(ResponseEntity.ok(userDto));
+            //System.out.println("User found: " + userDto.getUserName());
+            //System.out.println(ResponseEntity.ok(userDto));
             return ResponseEntity.ok(userDto);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);

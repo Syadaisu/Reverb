@@ -1,4 +1,3 @@
-// User.java
 package com.reverb.app.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -7,7 +6,6 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import jakarta.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,20 +39,17 @@ public class User implements UserDetails {
     @Column
     private Date creationDate;
 
-    @Column
-    private Boolean isRemoved;
-
     @ManyToMany
     @JoinTable(
             name = "user_server",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "server_id")
     )
-    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Server> servers;
 
     @ManyToMany(mappedBy = "authorizedUsers")
-    @JsonIgnore // Prevents recursion during serialization
+    @JsonIgnore
     private List<Server> authorizedServers;
 
     @ElementCollection(fetch = FetchType.EAGER)

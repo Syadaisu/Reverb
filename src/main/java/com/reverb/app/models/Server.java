@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,9 +22,6 @@ public class Server {
     @Column
     private String description;
 
-    @Column(nullable=false)
-    private Boolean isPublic;
-
     @Column(name="user_id",nullable=false)
     private Integer ownerId;
 
@@ -41,8 +36,8 @@ public class Server {
     private Attachment serverIcon;
 
     @ManyToMany(mappedBy = "servers")
-    @JsonIgnore// The "servers" field in User entity
-    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
+    @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<User> members;
 
     @ManyToMany
@@ -51,7 +46,7 @@ public class Server {
             joinColumns = @JoinColumn(name = "server_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    @JsonIgnore // Prevent recursion during serialization
+    @JsonIgnore
     private List<User> authorizedUsers;
 
     public void setServerName(String serverName) {
@@ -62,9 +57,6 @@ public class Server {
         this.description = description;
     }
 
-    public void setIsPublic(Boolean isPublic) {
-        this.isPublic = isPublic;
-    }
 
     public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
@@ -92,10 +84,6 @@ public class Server {
 
     public String getDescription() {
         return description;
-    }
-
-    public Boolean getIsPublic() {
-        return isPublic;
     }
 
 

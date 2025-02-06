@@ -1,4 +1,3 @@
-// src/main/java/com/example/dto/AddMessageRequest.java
 package com.reverb.app.dto.requests;
 
 public class AddMessageRequest {
@@ -7,22 +6,19 @@ public class AddMessageRequest {
     private int authorId;       // which user
     private String body;        // message text
     private String responseToId;
-    private String responseTo;
     private String attachmentUuid;     // optional, default 0
 
     public AddMessageRequest() {}
 
     public AddMessageRequest(int channelId, int authorId, String body,
-                             String responseToId, String responseTo, String attachmentUuid) {
+                             String responseToId , String attachmentUuid) {
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.responseToId = responseToId;
-        this.responseTo = responseTo;
         this.attachmentUuid = attachmentUuid;
     }
 
-    // Getters and setters
     public int getChannelId() {
         return channelId;
     }
@@ -51,12 +47,6 @@ public class AddMessageRequest {
         this.responseToId = responseToId;
     }
 
-    public String getResponseTo() {
-        return responseTo;
-    }
-    public void setResponseTo(String responseTo) {
-        this.responseTo = responseTo;
-    }
 
     public String getAttachmentUuid() {
         return attachmentUuid;

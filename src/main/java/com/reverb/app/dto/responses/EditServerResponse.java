@@ -1,5 +1,3 @@
-
-
 package com.reverb.app.dto.responses;
 
 public class EditServerResponse {

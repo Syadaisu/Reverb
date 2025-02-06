@@ -1,5 +1,3 @@
-// src/main/java/com/reverb/app/dto/EditUserResponse.java
-
 package com.reverb.app.dto.responses;
 
 public class EditUserResponse {

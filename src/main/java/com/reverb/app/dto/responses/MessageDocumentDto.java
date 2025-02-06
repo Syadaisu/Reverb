@@ -3,33 +3,25 @@ package com.reverb.app.dto.responses;
 import java.util.Date;
 
 public class MessageDocumentDto {
-
     private String messageId; // Changed to String for MongoDB ObjectId
     private Integer channelId;
     private Integer authorId;
     private String body;
     private Date creationDate;
-    private Boolean isDeleted;
     private String attachmentUuid;
     private String responseToId;
-    private String responseTo;
 
-    // Constructors
     public MessageDocumentDto() {}
 
-    public MessageDocumentDto(String messageId, Integer channelId, Integer authorId, String body, Date creationDate, Boolean isDeleted, String attachmentUuid, String responseToId, String responseTo) {
+    public MessageDocumentDto(String messageId, Integer channelId, Integer authorId, String body, Date creationDate,  String attachmentUuid, String responseToId) {
         this.messageId = messageId;
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.creationDate = creationDate;
-        this.isDeleted = isDeleted;
         this.attachmentUuid = attachmentUuid;
         this.responseToId = responseToId;
-        this.responseTo = responseTo;
     }
-
-    // Getters and Setters
 
     public String getMessageId() {
         return messageId;
@@ -71,14 +63,6 @@ public class MessageDocumentDto {
         this.creationDate = creationDate;
     }
 
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
-
     public String getAttachmentUuid() {
         return attachmentUuid;
     }
@@ -95,11 +79,4 @@ public class MessageDocumentDto {
         this.responseToId = responseToId;
     }
 
-    public String getResponseTo() {
-        return responseTo;
-    }
-
-    public void setResponseTo(String responseTo) {
-        this.responseTo = responseTo;
-    }
 }

@@ -30,7 +30,7 @@ public class SecurityConfig {
                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
-        System.out.println("Custom SecurityConfig Loaded");
+        //System.out.println("Custom SecurityConfig Loaded");
     }
 
     @Bean
@@ -72,7 +72,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         // Configure the CORS rules
-        System.out.println("Custom Cors Accessed");
+        //System.out.println("Custom Cors Accessed");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("http://localhost:5000"));
         // If you want to allow multiple origins, add them here

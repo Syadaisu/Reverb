@@ -4,20 +4,17 @@ public class AddChannelResponse {
     private int channelId;
     private String channelName;
     private String description;
-    private String roleAccess;
 
 
     public AddChannelResponse() {
     }
 
-    public AddChannelResponse(int channelId, String channelName, String description, String roleAccess) {
+    public AddChannelResponse(int channelId, String channelName, String description) {
         this.channelId = channelId;
         this.channelName = channelName;
         this.description = description;
-        this.roleAccess = roleAccess;
     }
 
-    // Getters and setters
     public int getChannelId() {
         return channelId;
     }
@@ -40,13 +37,5 @@ public class AddChannelResponse {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getRoleAccess() {
-        return roleAccess;
-    }
-
-    public void setRoleAccess(String roleAccess) {
-        this.roleAccess = roleAccess;
     }
 }

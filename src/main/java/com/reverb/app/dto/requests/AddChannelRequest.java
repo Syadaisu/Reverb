@@ -3,21 +3,17 @@ package com.reverb.app.dto.requests;
 public class AddChannelRequest {
     private String channelName;
     private int serverId;
-    private String roleAccess;
     private String description;
 
-    // Constructors
     public AddChannelRequest() {
     }
 
-    public AddChannelRequest(String channelName, int serverId, String description, String roleAccess) {
+    public AddChannelRequest(String channelName, int serverId, String description) {
         this.channelName = channelName;
         this.serverId = serverId;
-        this.roleAccess = roleAccess;
         this.description = description;
     }
 
-    // Getters and Setters
     public String getChannelName() {
         return channelName;
     }
@@ -32,14 +28,6 @@ public class AddChannelRequest {
 
     public void setServerId(int serverId) {
         this.serverId = serverId;
-    }
-
-    public String getRoleAccess() {
-        return roleAccess;
-    }
-
-    public void setRoleAccess(String roleAccess) {
-        this.roleAccess = roleAccess;
     }
 
     public String getDescription() {

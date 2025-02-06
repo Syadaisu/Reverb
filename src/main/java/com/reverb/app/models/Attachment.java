@@ -18,7 +18,6 @@ public class Attachment {
     @Column(name = "content_type", nullable = false)
     private String contentType;
 
-    // Constructors
     public Attachment() {
         this.attachmentUuid = UUID.randomUUID().toString();
     }
@@ -30,7 +29,6 @@ public class Attachment {
         System.out.println("Attachment.constructor: " + this.attachmentUuid + " " + this.contentType + " " + this.attachmentData.length);
     }
 
-    // Getters and Setters
     public String getAttachmentUuid() {
         return attachmentUuid;
     }

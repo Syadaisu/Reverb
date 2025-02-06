@@ -7,12 +7,10 @@ import com.reverb.app.dto.responses.GenericResponse;
 import com.reverb.app.dto.responses.LoginResponse;
 import com.reverb.app.dto.responses.TokenResponse;
 import com.reverb.app.dto.responses.UserDto;
-import com.reverb.app.models.Attachment;
 import com.reverb.app.models.User;
 import com.reverb.app.services.AccountService;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,12 +40,12 @@ public class AccountController {
 
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public CompletableFuture<ResponseEntity<LoginResponse>> login(@RequestBody LoginRequest request) {
-        System.out.println("loginControllerEnter");
+        //System.out.println("loginControllerEnter");
         return accountService.login(request.getEmail(), request.getPassword())
                 .thenApply(result -> {
-                    System.out.println("ServiceCompleted");
+                    //System.out.println("ServiceCompleted");
                     var user = (User) result.get("user");
-                    System.out.println(result);
+                    //System.out.println(result);
                     String avatarUuid = (String) result.get("avatarUuid");
                     LoginResponse response = new LoginResponse(
                             (String) result.get("accessToken"),
@@ -63,14 +61,14 @@ public class AccountController {
                             )
                     );
 
-                    System.out.println(response); // Print the response
+                    //System.out.println(response); // Print the response
 
                     return ResponseEntity.ok()
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(response);
                 })
                 .exceptionally(ex -> {
-                    System.out.println("Error");
+                    //System.out.println("Error");
                     ex.printStackTrace();  // Optionally log the error
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
                             .contentType(MediaType.APPLICATION_JSON)

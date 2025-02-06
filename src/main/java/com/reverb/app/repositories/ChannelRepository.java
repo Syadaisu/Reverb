@@ -1,7 +1,6 @@
 package com.reverb.app.repositories;
 
 import com.reverb.app.models.Channel;
-import com.reverb.app.models.Server;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

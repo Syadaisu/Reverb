@@ -9,7 +9,6 @@ import com.reverb.app.repositories.ChannelRepository;
 import com.reverb.app.repositories.ServerRepository;
 import com.reverb.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,10 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,14 +40,12 @@ public class ServerService {
     @Async("securityAwareExecutor")
     public CompletableFuture<Server> addServer(String serverName, String description, int ownerId) {
         return CompletableFuture.supplyAsync(() -> {
-            // Check if owner exists
             User owner = userRepository.findById(ownerId)
                     .orElseThrow(() -> new UsernameNotFoundException("Owner not found"));
 
             Server server = new Server();
             server.setServerName(serverName);
             server.setDescription(description);
-            server.setIsPublic(true);
             server.setOwnerId(ownerId);
             server.setServerIcon(null);
             server.setOwner(owner); // Link the owner
@@ -73,15 +68,12 @@ public class ServerService {
 
     @Transactional
     public Server addServerSync(String name, String description, int ownerId) {
-        // 1) Fetch the owner
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UsernameNotFoundException("Owner not found"));
 
-        // 2) Create the server object
         Server server = new Server();
         server.setServerName(name);
         server.setDescription(description);
-        server.setIsPublic(true);
         server.setOwnerId(ownerId);
         server.setServerIcon(null);
         server.setOwner(owner);
@@ -93,15 +85,12 @@ public class ServerService {
         if (server.getAuthorizedUsers() == null) {
             server.setAuthorizedUsers(new ArrayList<>());
         }
-        // 3) Save the server
         server = serverRepository.save(server);
 
-        // 4) Automatically join the owner to the server by calling joinServer
         joinServer(server.getServerName(), ownerId);
         grantAuthority(server.getServerName(), ownerId);
 
-        System.out.println("Server created: " + server.getServerName() + " by " + owner.getUserName() + " authority check " + server.getAuthorizedUsers());
-        // 5) Return the fully created server
+        //System.out.println("Server created: " + server.getServerName() + " by " + owner.getUserName() + " authority check " + server.getAuthorizedUsers());
         return server;
     }
 
@@ -112,7 +101,6 @@ public class ServerService {
             Server server = serverRepository.findById(serverId)
                     .orElseThrow(() -> new RuntimeException("Server not found"));
 
-            // Ensure the owner is deleting their own server
             if (server.getOwnerId() != ownerId) {
                 throw new RuntimeException("You do not have permission to delete this server");
             }
@@ -121,34 +109,29 @@ public class ServerService {
         });
     }
 
-    // Get all servers for a user
     @Async("securityAwareExecutor")
     public CompletableFuture<List<ServerDto>> getUserServers(int userId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 
-                // 1. Fetch servers for the given user
                 List<Server> servers = serverRepository.findAllByMemberUserId(userId);
 
-                // 2. Log if none found
-                if (servers.isEmpty()) {
+                /*if (servers.isEmpty()) {
                     System.out.println("No servers found for user " + userId);
-                }
+                }*/
 
-                // 3. Convert each Server entity to a ServerDto, providing defaults if null
                 return servers.stream()
                         .map(server -> new ServerDto(
                                 server.getServerId(),
                                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                                 server.getDescription() != null ? server.getDescription() : "No description available",
-                                server.getIsPublic() != null ? server.getIsPublic() : false,
                                 server.getOwnerId(),
                                 server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
                         ))
                         .collect(Collectors.toList());
 
             } catch (Exception e) {
-                System.out.println("Error getting servers for user " + userId + ": " + e.getMessage());
+                //System.out.println("Error getting servers for user " + userId + ": " + e.getMessage());
                 e.printStackTrace();
                 return List.of(); // Return an empty list if something goes wrong
             }
@@ -157,17 +140,14 @@ public class ServerService {
 
     @Transactional
     public List<ServerDto> getUserServersFromUserSide(int userId) {
-        // 1) Load the user
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id=" + userId));
 
-        // 2) Access the servers from 'user'
-        System.out.println("User: "+ user.getServers() + " " + user.getUserName());
-        List<Server> servers = user.getServers();  // This is the ManyToMany list
+        //System.out.println("User: "+ user.getServers() + " " + user.getUserName());
+        List<Server> servers = user.getServers();
 
-        // 3) Convert to Dtos
         return servers.stream()
-                .map(this::toDto)   // or a custom mapping
+                .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -176,7 +156,6 @@ public class ServerService {
                 server.getServerId(),
                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                 server.getDescription() != null ? server.getDescription() : "No description",
-                server.getIsPublic() != null ? server.getIsPublic() : false,
                 server.getOwnerId(),
                 server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
 
@@ -189,15 +168,13 @@ public class ServerService {
             try{
                 List<Server> servers = serverRepository.findAll();
                 if (servers.isEmpty()) {
-                    System.out.println("No servers found in the database" + servers);
+                    //System.out.println("No servers found in the database" + servers);
                 }
-                // Convert Server entities to ServerResponse DTOs
                 return servers.stream()
                         .map(server -> new ServerDto(
                                 server.getServerId(),
                                 server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                                 server.getDescription() != null ? server.getDescription() : "No description available",
-                                server.getIsPublic() != null ? server.getIsPublic() : false,
                                 server.getOwnerId(),
                                 server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
                         ))
@@ -205,7 +182,7 @@ public class ServerService {
             } catch (Exception e) {
                 System.out.println("Error getting servers: " + e.getMessage());
                 e.printStackTrace();
-                return List.of(); // Return an empty list if something goes wrong
+                return List.of();
             }
         });
     }
@@ -216,38 +193,28 @@ public class ServerService {
             int ownerId,
             String newName,
             String newDescription
-            //String newAvatar
     ) {
         return CompletableFuture.supplyAsync(() -> {
-            // 1. Fetch server from DB
             Server server = serverRepository.findById(serverId)
                     .orElseThrow(() -> new RuntimeException("Server not found"));
 
-            // 2. Ensure the user owns the server
             if (server.getOwnerId() != ownerId) {
                 throw new RuntimeException("You do not have permission to edit this server");
             }
 
-            // 3. Update fields
             if (newName != null) {
                 server.setServerName(newName);
             }
             if (newDescription != null) {
                 server.setDescription(newDescription);
             }
-            /*if (newAvatar != null) {
-                server.setAvatar(newAvatar);
-            }*/
 
-            // 4. Save changes
             Server updatedServer = serverRepository.save(server);
 
-            // 5. Convert updated entity to a ServerDto
             return new ServerDto(
                     updatedServer.getServerId(),
                     updatedServer.getServerName(),
                     updatedServer.getDescription(),
-                    updatedServer.getIsPublic() != null ? updatedServer.getIsPublic() : false,
                     updatedServer.getOwnerId(),
                     updatedServer.getServerIcon() != null ? updatedServer.getServerIcon().getAttachmentUuid() : null
             );
@@ -257,16 +224,13 @@ public class ServerService {
     @Async("securityAwareExecutor")
     public CompletableFuture<ServerDto> getServerById(int serverId) {
         return CompletableFuture.supplyAsync(() -> {
-            // Fetch the server from the database
             Server server = serverRepository.findById(serverId)
                     .orElseThrow(() -> new RuntimeException("Server not found with ID: " + serverId));
 
-            // Convert to a ServerDto (handle null fields safely)
             return new ServerDto(
                     server.getServerId(),
                     server.getServerName() != null ? server.getServerName() : "Unnamed Server",
                     server.getDescription() != null ? server.getDescription() : "No description available",
-                    server.getIsPublic() != null ? server.getIsPublic() : false,
                     server.getOwnerId(),
                     server.getServerIcon() != null ? server.getServerIcon().getAttachmentUuid() : null
             );
@@ -275,31 +239,39 @@ public class ServerService {
 
     @Transactional
     public void joinServer(String serverName, int userId) {
-        // 1) find the server by name
         Server server = serverRepository.findByServerName(serverName)
                 .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
 
-        // 2) find the user
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("No user found with id: " + userId));
 
-        // 3) Add user to server's members if not already
         if (!server.getMembers().contains(user)) {
             server.getMembers().add(user);
         }
 
-        // 4) Also add the server to user’s servers if not already
         if (!user.getServers().contains(server)) {
             user.getServers().add(server);
         }
 
-        // 5) Save the "owning" side or both to ensure the link is persisted
-        // Typically, the side with @JoinTable is the "owning" side - that’s the user in this example
-        // So saving user might be enough. But to be safe, you can save both:
-
         userRepository.save(user);   // Persist the new link
         serverRepository.save(server);
+    }
 
+    @Transactional
+    public void leaveServer(String serverName,int userId) {
+        Server server = serverRepository.findByServerName(serverName)
+                .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No user found with id: " + userId));
+
+        if (server.getMembers().contains(user)) {
+            server.getMembers().remove(user);
+        }
+        if (user.getServers().contains(server)) {
+            user.getServers().remove(server);
+        }
+        userRepository.save(user);
+        serverRepository.save(server);
     }
 
     @Transactional
@@ -307,25 +279,18 @@ public class ServerService {
         Server server = serverRepository.findByServerName(serverName)
                 .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
 
-        // 2) find the user
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("No user found with id: " + userId));
 
-        // 3) Add user to server's members if not already
         if (!server.getAuthorizedUsers().contains(user)) {
             server.getAuthorizedUsers().add(user);
         }
 
-        // 4) Also add the server to user’s servers if not already
         if (!user.getAuthorizedServers().contains(server)) {
             user.getAuthorizedServers().add(server);
         }
 
-        // 5) Save the "owning" side or both to ensure the link is persisted
-        // Typically, the side with @JoinTable is the "owning" side - that’s the user in this example
-        // So saving user might be enough. But to be safe, you can save both:
-
-        System.out.println("Server with admin users: " + server.getAuthorizedUsers());
+        //System.out.println("Server with admin users: " + server.getAuthorizedUsers());
         userRepository.save(user);   // Persist the new link
         serverRepository.save(server);
     }
@@ -335,26 +300,19 @@ public class ServerService {
         Server server = serverRepository.findByServerId(serverId)
                 .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverId));
 
-        // 2) find the user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
 
-        System.out.println("User email found: " + user.getEmail());
-        // 3) Add user to server's members if not already
+        //System.out.println("User email found: " + user.getEmail());
         if (!server.getAuthorizedUsers().contains(user)) {
             server.getAuthorizedUsers().add(user);
         }
 
-        // 4) Also add the server to user’s servers if not already
         if (!user.getAuthorizedServers().contains(server)) {
             user.getAuthorizedServers().add(server);
         }
 
-        // 5) Save the "owning" side or both to ensure the link is persisted
-        // Typically, the side with @JoinTable is the "owning" side - that’s the user in this example
-        // So saving user might be enough. But to be safe, you can save both:
-
-        System.out.println("Server with admin users: " + server.getAuthorizedUsers());
+        //System.out.println("Server with admin users: " + server.getAuthorizedUsers());
         userRepository.save(user);   // Persist the new link
         serverRepository.save(server);
     }
@@ -364,31 +322,25 @@ public class ServerService {
         Server server = serverRepository.findByServerName(serverName)
                 .orElseThrow(() -> new IllegalArgumentException("No server found with name: " + serverName));
 
-        // 2) find the user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
 
-        // 3) Remove user from server's members if not already
         if (server.getAuthorizedUsers().contains(user)) {
             server.getAuthorizedUsers().remove(user);
         }
 
         serverRepository.save(server);
-
     }
 
     @Transactional
     public void updateServerAvatar(int serverId, MultipartFile serverIcon) throws Exception {
-        // 1) Identify current user
         Server server = serverRepository.findById(serverId)
                 .orElseThrow(() -> new Exception("Authenticated user not found"));
 
-        // 2) If avatar is empty => maybe remove or throw error
         if (serverIcon == null || serverIcon.isEmpty()) {
             throw new Exception("No avatar file provided.");
         }
 
-        // 3) If user has an existing attachment or not
         Attachment attachment;
         if (server.getServerIcon() != null) {
             attachment = server.getServerIcon();
@@ -397,11 +349,12 @@ public class ServerService {
         }
         attachment.setAttachmentData(serverIcon.getBytes());
         attachment.setContentType(serverIcon.getContentType());
-        System.out.println("AttachmentService.uploadAvatar: " + attachment.getAttachmentUuid() + " " + attachment.getContentType() + " " + attachment.getAttachmentData().length);
+        //System.out.println("AttachmentService.uploadAvatar: " + attachment.getAttachmentUuid() + " "
+        // + attachment.getContentType() + " " + attachment.getAttachmentData().length);
         attachmentRepository.save(attachment); // ensure stored
 
         server.setServerIcon(attachment);
-        System.out.println("ServerService.updateServerAvatar: " + server.getServerIcon().getAttachmentUuid() + " " + server.getServerIcon().getContentType() + " " + server.getServerIcon().getAttachmentData().length);
+        //System.out.println("ServerService.updateServerAvatar: " + server.getServerIcon().getAttachmentUuid() + " " + server.getServerIcon().getContentType() + " " + server.getServerIcon().getAttachmentData().length);
         serverRepository.save(server);
     }
 
@@ -413,7 +366,7 @@ public class ServerService {
         List<Integer> adminIds = admins.stream()
                 .map(User::getUserId)
                 .collect(Collectors.toList());
-        System.out.println("Admins for server " + serverId + ": " + adminIds);
+        //System.out.println("Admins for server " + serverId + ": " + adminIds);
         return adminIds;
     }
 }

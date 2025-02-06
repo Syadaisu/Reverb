@@ -9,31 +9,25 @@ import java.util.Date;
 public class MessageDocument {
 
     @Id
-    private String messageId; // MongoDB's ObjectId as a string
-    private Integer channelId; // Reference to the channel in RDBMS
-    private Integer authorId;  // Reference to the user in RDBMS
+    private String messageId;
+    private Integer channelId;
+    private Integer authorId;
     private String body;
     private Date creationDate;
-    private Boolean isDeleted;
     private String attachmentUuid;
     private String responseToId;
-    private String responseTo;
 
-    // Constructors
     public MessageDocument() {}
 
-    public MessageDocument(Integer channelId, Integer authorId, String body, Date creationDate, Boolean isDeleted, String attachmentUuid, String responseToId, String responseTo) {
+    public MessageDocument(Integer channelId, Integer authorId, String body, Date creationDate, String attachmentUuid, String responseToId) {
         this.channelId = channelId;
         this.authorId = authorId;
         this.body = body;
         this.creationDate = creationDate;
-        this.isDeleted = isDeleted;
         this.attachmentUuid = attachmentUuid;
         this.responseToId = responseToId;
-        this.responseTo = responseTo;
     }
 
-    // Getters and Setters
     public String getMessageId() {
         return messageId;
     }
@@ -74,13 +68,6 @@ public class MessageDocument {
         this.creationDate = creationDate;
     }
 
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
 
     public String getAttachmentUuid() {
         return attachmentUuid;
@@ -96,14 +83,6 @@ public class MessageDocument {
 
     public void setResponseToId(String responseToId) {
         this.responseToId = responseToId;
-    }
-
-    public String getResponseTo() {
-        return responseTo;
-    }
-
-    public void setResponseTo(String responseTo) {
-        this.responseTo = responseTo;
     }
 
 

@@ -7,15 +7,13 @@ public class ServerDto {
     private int serverId;
     private String serverName;
     private String description;
-    private Boolean isPublic;
     private int ownerId;
     private String serverIconUuid;
 
-    public ServerDto(int serverId, String serverName, String description, Boolean isPublic, int ownerId, String serverIconUuid) {
+    public ServerDto(int serverId, String serverName, String description, int ownerId, String serverIconUuid) {
         this.serverId = serverId;
         this.serverName = serverName;
         this.description = description;
-        this.isPublic = isPublic;
         this.ownerId = ownerId;
         this.serverIconUuid = serverIconUuid;
     }
@@ -45,14 +43,6 @@ public class ServerDto {
         this.description = description;
     }
 
-    public Boolean getIsPublic() {
-        return isPublic;
-    }
-
-    public void setIsPublic(Boolean isPublic) {
-        this.isPublic = isPublic;
-    }
-
     public int getOwnerId() {
         return ownerId;
     }
@@ -75,7 +65,6 @@ public class ServerDto {
                 "serverId=" + serverId +
                 ", serverName='" + serverName + '\'' +
                 ", description='" + description + '\'' +
-                ", isPublic=" + isPublic + '\'' +
                 ", ownerId=" + ownerId +
                 ", serverIconUuid=" + serverIconUuid +
                 '}';

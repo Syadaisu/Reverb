@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -27,14 +26,14 @@ public class JwtTokenUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (JwtException | IllegalArgumentException e) {
-            System.out.println("Invalid JWT: " + e.getMessage());
+            //System.out.println("Invalid JWT: " + e.getMessage());
             throw new RuntimeException("Invalid JWT Token");
         }
     }
 
     public boolean validateToken(String token, String userId) {
         Claims claims = parseToken(token);
-        System.out.println("Validation claims: " + claims.getSubject().equals(userId) + " " + !isTokenExpired(claims));
+        //System.out.println("Validation claims: " + claims.getSubject().equals(userId) + " " + !isTokenExpired(claims));
         return claims.getSubject().equals(userId) && !isTokenExpired(claims);
     }
 

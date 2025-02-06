@@ -18,11 +18,8 @@ public class Channel {
 
     @ManyToOne
     @JoinColumn(name="serverId",nullable=false)
-    @OnDelete(action = OnDeleteAction.CASCADE) // Hibernate-specific annotation
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Server server;
-
-    @Column
-    private String roleAccess;
 
     @Column
     private String description;
@@ -31,10 +28,9 @@ public class Channel {
     public Channel() {
     }
 
-    public Channel(String channelName, Server server, String roleAccess, String description) {
+    public Channel(String channelName, Server server, String description) {
         this.channelName = channelName;
         this.server = server;
-        this.roleAccess = roleAccess;
         this.description = description;
     }
 
@@ -60,14 +56,6 @@ public class Channel {
 
     public void setServer(Server server) {
         this.server = server;
-    }
-
-    public String getRoleAccess() {
-        return roleAccess;
-    }
-
-    public void setRoleAccess(String roleAccess) {
-        this.roleAccess = roleAccess;
     }
 
     public String getDescription() {
