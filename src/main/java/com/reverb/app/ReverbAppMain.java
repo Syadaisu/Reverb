@@ -13,7 +13,7 @@ public class ReverbAppMain {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ReverbAppMain.class, args);
-		System.out.println("Hello World!");
+		System.out.println("Welcome to Reverb Server!");
 	}
 
 	@Bean

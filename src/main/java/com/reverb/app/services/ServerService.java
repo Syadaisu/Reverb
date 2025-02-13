@@ -187,6 +187,7 @@ public class ServerService {
         });
     }
 
+    @Transactional
     @Async("securityAwareExecutor")
     public CompletableFuture<ServerDto> editServer(
             int serverId,
@@ -195,12 +196,17 @@ public class ServerService {
             String newDescription
     ) {
         return CompletableFuture.supplyAsync(() -> {
+
+
             Server server = serverRepository.findById(serverId)
                     .orElseThrow(() -> new RuntimeException("Server not found"));
 
-            if (server.getOwnerId() != ownerId) {
+
+            /*if (server.getOwnerId() != ownerId ) {
                 throw new RuntimeException("You do not have permission to edit this server");
-            }
+            }*/
+
+
 
             if (newName != null) {
                 server.setServerName(newName);

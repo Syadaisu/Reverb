@@ -148,14 +148,13 @@ public class MessageService {
         }
 
         MessageDocument messageDoc = optionalMsgDoc.get();
-        System.out.println(messageDoc.getAuthorId());
         // Only the author can delete
         //if (!Objects.equals(messageDoc.getAuthorId(), userId)) {
             //throw new RuntimeException("You do not have permission to delete this message.");
        // }
 
-        messageDocumentRepository.deleteById(messageId);
-        messageDocumentRepository.save(messageDoc);
+        messageDocumentRepository.deleteByMessageId(messageId);
+        //System.out.println("Message deleted " + messageDoc.getMessageId());
     }
 
     private MessageDocumentDto toMessageDocumentDto(MessageDocument msgDoc) {
